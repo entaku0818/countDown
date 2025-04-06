@@ -1,0 +1,17 @@
+//
+//  countDownApp.swift
+//  countDown
+//
+//  Created by 遠藤拓弥 on 2025/04/06.
+//
+
+import SwiftUI
+
+@main
+struct countDownApp: App {
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
