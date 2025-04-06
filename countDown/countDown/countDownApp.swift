@@ -6,12 +6,17 @@
 //
 
 import SwiftUI
+import ComposableArchitecture
 
 @main
 struct countDownApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            CountdownListView(
+                store: Store(initialState: CountdownFeature.State()) {
+                    CountdownFeature()
+                }
+            )
         }
     }
 }
