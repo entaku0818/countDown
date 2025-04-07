@@ -217,7 +217,7 @@ struct CountdownFeature {
         if !searchText.isEmpty {
             filteredEvents = filteredEvents.filter { event in
                 event.title.localizedCaseInsensitiveContains(searchText) ||
-                (event.note?.localizedCaseInsensitiveContains(searchText) ?? false)
+                event.note.localizedCaseInsensitiveContains(searchText)
             }
         }
         
