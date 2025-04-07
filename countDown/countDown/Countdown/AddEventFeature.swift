@@ -15,11 +15,8 @@ struct AddEventFeature {
         var mode: Mode = .add
     }
     
-    enum Action: Equatable {
-        case titleChanged(String)
-        case dateChanged(Date)
-        case colorChanged(String)
-        case noteChanged(String)
+    enum Action: BindableAction {
+        case binding(BindingAction<State>)
         case saveButtonTapped
         case cancelButtonTapped
         case delegate(Delegate)
@@ -30,22 +27,11 @@ struct AddEventFeature {
     }
     
     var body: some ReducerOf<Self> {
+        BindingReducer()
+        
         Reduce { state, action in
             switch action {
-            case let .titleChanged(title):
-                state.event.title = title
-                return .none
-                
-            case let .dateChanged(date):
-                state.event.date = date
-                return .none
-                
-            case let .colorChanged(color):
-                state.event.color = color
-                return .none
-                
-            case let .noteChanged(note):
-                state.event.note = note
+            case .binding:
                 return .none
                 
             case .saveButtonTapped:
@@ -68,11 +54,11 @@ struct AddEventView: View {
     var body: some View {
         Form {
             Section(header: Text("イベント情報")) {
-                TextField("イベント名", text: $store.event.title.sending(\.titleChanged))
+                TextField("イベント名", text: $store.event.title)
                 
                 DatePicker(
                     "日付",
-                    selection: $store.event.date.sending(\.dateChanged),
+                    selection: $store.event.date,
                     displayedComponents: .date
                 )
             }
@@ -85,7 +71,7 @@ struct AddEventView: View {
                                 color: eventColor.colorValue,
                                 isSelected: store.event.color == eventColor.rawValue
                             ) {
-                                store.send(.colorChanged(eventColor.rawValue))
+                                store.event.color = eventColor.rawValue
                             }
                         }
                     }
@@ -93,19 +79,38 @@ struct AddEventView: View {
                 }
             }
             
+            Section(header: Text("表示形式")) {
+                Picker("スタイル", selection: $store.event.displayFormat.style) {
+                    ForEach(DisplayFormat.CountdownStyle.allCases, id: \.self) { style in
+                        Text(style.rawValue).tag(style)
+                    }
+                }
+                
+                Toggle("日数表示", isOn: $store.event.displayFormat.showDays)
+                Toggle("時間表示", isOn: $store.event.displayFormat.showHours)
+                Toggle("分表示", isOn: $store.event.displayFormat.showMinutes)
+                Toggle("秒表示", isOn: $store.event.displayFormat.showSeconds)
+            }
+            
             Section(header: Text("メモ")) {
                 if #available(iOS 16.0, *) {
-                    TextEditor(text: Binding(
-                        get: { store.event.note ?? "" },
-                        set: { store.send(.noteChanged($0)) }
-                    ))
-                    .frame(minHeight: 100)
+                    TextEditor(text: $store.event.note)
+                        .frame(minHeight: 100)
                 } else {
-                    TextEditor(text: Binding(
-                        get: { store.event.note ?? "" },
-                        set: { store.send(.noteChanged($0)) }
-                    ))
-                    .frame(height: 100)
+                    TextEditor(text: $store.event.note)
+                        .frame(height: 100)
+                }
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("キャンセル") {
+                    store.send(.cancelButtonTapped)
+                }
+            }
+            ToolbarItem(placement: .confirmationAction) {
+                Button("保存") {
+                    store.send(.saveButtonTapped)
                 }
             }
         }
