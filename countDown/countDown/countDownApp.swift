@@ -12,7 +12,7 @@ import ComposableArchitecture
 struct countDownApp: App {
     var body: some Scene {
         WindowGroup {
-            CountdownListView(
+            CountdownView(
                 store: Store(initialState: CountdownFeature.State()) {
                     CountdownFeature()
                 }
