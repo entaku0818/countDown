@@ -8,7 +8,7 @@ struct Event: Equatable, Identifiable, Codable {
     var title: String
     var date: Date
     var color: String
-    var note: String?
+    var note: String
     var displayFormat: DisplayFormat
     
     init(
@@ -16,7 +16,7 @@ struct Event: Equatable, Identifiable, Codable {
         title: String,
         date: Date,
         color: String = "blue",
-        note: String? = nil,
+        note: String = "",
         displayFormat: DisplayFormat = DisplayFormat()
     ) {
         self.id = id
