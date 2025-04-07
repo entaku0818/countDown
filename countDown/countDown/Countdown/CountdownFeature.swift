@@ -84,8 +84,15 @@ struct CountdownFeature {
     @ObservableState
     struct State: Equatable {
         var events: IdentifiedArrayOf<Event> = []
+        var sortOrder: SortOrder = .date
+        var searchText: String = ""
         @Presents var addEvent: AddEventFeature.State?
         @Presents var editEvent: AddEventFeature.State?
+        
+        enum SortOrder: Equatable {
+            case date
+            case daysRemaining
+        }
     }
     
     enum Action: Equatable {
@@ -96,6 +103,8 @@ struct CountdownFeature {
         case eventTapped(Event)
         case addEvent(PresentationAction<AddEventFeature.Action>)
         case editEvent(PresentationAction<AddEventFeature.Action>)
+        case setSortOrder(State.SortOrder)
+        case searchTextChanged(String)
     }
     
     @Dependency(\.eventClient) var eventClient
@@ -154,6 +163,14 @@ struct CountdownFeature {
                 state.editEvent = nil
                 return .none
                 
+            case let .setSortOrder(order):
+                state.sortOrder = order
+                return .none
+                
+            case let .searchTextChanged(text):
+                state.searchText = text
+                return .none
+                
             case .addEvent, .editEvent:
                 return .none
             }
@@ -165,66 +182,26 @@ struct CountdownFeature {
             AddEventFeature()
         }
     }
-}
-
-// MARK: - Event Client
-struct EventClient {
-    var loadEvents: @Sendable () async -> [Event]
-    var saveEvent: @Sendable (Event) async -> Void
-    var updateEvent: @Sendable (Event) async -> Void
-    var deleteEvent: @Sendable (UUID) async -> Void
-}
-
-extension EventClient: DependencyKey {
-    static var liveValue: EventClient = {
-        let saveKey = "SavedEvents"
+    
+    func sortedAndFilteredEvents(_ events: IdentifiedArrayOf<Event>, sortOrder: State.SortOrder, searchText: String) -> [Event] {
+        var filteredEvents = Array(events)
         
-        return EventClient(
-            loadEvents: {
-                guard let data = UserDefaults.standard.data(forKey: saveKey),
-                      let events = try? JSONDecoder().decode([Event].self, from: data) else {
-                    return []
-                }
-                return events
-            },
-            saveEvent: { event in
-                var events = await loadEvents()
-                events.append(event)
-                if let encoded = try? JSONEncoder().encode(events) {
-                    UserDefaults.standard.set(encoded, forKey: saveKey)
-                }
-            },
-            updateEvent: { updatedEvent in
-                var events = await loadEvents()
-                if let index = events.firstIndex(where: { $0.id == updatedEvent.id }) {
-                    events[index] = updatedEvent
-                    if let encoded = try? JSONEncoder().encode(events) {
-                        UserDefaults.standard.set(encoded, forKey: saveKey)
-                    }
-                }
-            },
-            deleteEvent: { id in
-                var events = await loadEvents()
-                events.removeAll(where: { $0.id == id })
-                if let encoded = try? JSONEncoder().encode(events) {
-                    UserDefaults.standard.set(encoded, forKey: saveKey)
-                }
+        // 検索フィルタリング
+        if !searchText.isEmpty {
+            filteredEvents = filteredEvents.filter { event in
+                event.title.localizedCaseInsensitiveContains(searchText) ||
+                (event.note?.localizedCaseInsensitiveContains(searchText) ?? false)
             }
-        )
-        
-        func loadEvents() async -> [Event] {
-            guard let data = UserDefaults.standard.data(forKey: saveKey),
-                  let events = try? JSONDecoder().decode([Event].self, from: data) else {
-                return []
-            }
-            return events
         }
-    }()
-}
-
-extension DependencyValues {
-    var eventClient: EventClient {
-        get { self[EventClient.self] }
-        set { self[EventClient.self] = newValue }
+        
+        // 並び替え
+        return filteredEvents.sorted { event1, event2 in
+            switch sortOrder {
+            case .date:
+                return event1.date < event2.date
+            case .daysRemaining:
+                return event1.daysRemaining < event2.daysRemaining
+            }
+        }
     }
-} 
+}
