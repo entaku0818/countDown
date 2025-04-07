@@ -83,9 +83,10 @@ extension Color {
 struct CountdownFeature {
     @ObservableState
     struct State: Equatable {
-        var events: IdentifiedArrayOf<Event> = []
+        var events: [Event] = []
         var sortOrder: SortOrder = .date
         var searchText: String = ""
+        var filteredEvents: [Event] = []
         @Presents var addEvent: AddEventFeature.State?
         @Presents var editEvent: AddEventFeature.State?
         
@@ -95,7 +96,8 @@ struct CountdownFeature {
         }
     }
     
-    enum Action: Equatable {
+    enum Action: BindableAction {
+        case binding(BindingAction<State>)
         case onAppear
         case eventsLoaded([Event])
         case addButtonTapped
@@ -103,15 +105,27 @@ struct CountdownFeature {
         case eventTapped(Event)
         case addEvent(PresentationAction<AddEventFeature.Action>)
         case editEvent(PresentationAction<AddEventFeature.Action>)
-        case setSortOrder(State.SortOrder)
-        case searchTextChanged(String)
+        case updateFilteredEvents
     }
     
     @Dependency(\.eventClient) var eventClient
     
     var body: some ReducerOf<Self> {
+        BindingReducer()
+        
         Reduce { state, action in
             switch action {
+            case .binding:
+                return .send(.updateFilteredEvents)
+                
+            case .updateFilteredEvents:
+                state.filteredEvents = sortedAndFilteredEvents(
+                    state.events,
+                    sortOrder: state.sortOrder,
+                    searchText: state.searchText
+                )
+                return .none
+                
             case .onAppear:
                 return .run { send in
                     let events = await eventClient.loadEvents()
@@ -119,8 +133,8 @@ struct CountdownFeature {
                 }
                 
             case let .eventsLoaded(events):
-                state.events = IdentifiedArrayOf(uniqueElements: events)
-                return .none
+                state.events = events
+                return .send(.updateFilteredEvents)
                 
             case .addButtonTapped:
                 state.addEvent = AddEventFeature.State(event: Event(title: "", date: Date()))
@@ -129,10 +143,11 @@ struct CountdownFeature {
             case let .deleteEvent(indexSet):
                 let eventsToDelete = indexSet.map { state.events[$0] }
                 state.events.remove(atOffsets: indexSet)
-                return .run { _ in
+                return .run { send in
                     for event in eventsToDelete {
                         await eventClient.deleteEvent(event.id)
                     }
+                    await send(.updateFilteredEvents)
                 }
                 
             case let .eventTapped(event):
@@ -142,8 +157,9 @@ struct CountdownFeature {
             case let .addEvent(.presented(.delegate(.saveEvent(event)))):
                 state.events.append(event)
                 state.addEvent = nil
-                return .run { _ in
+                return .run { send in
                     await eventClient.saveEvent(event)
+                    await send(.updateFilteredEvents)
                 }
                 
             case .addEvent(.dismiss):
@@ -155,20 +171,13 @@ struct CountdownFeature {
                     state.events[index] = event
                 }
                 state.editEvent = nil
-                return .run { _ in
+                return .run { send in
                     await eventClient.updateEvent(event)
+                    await send(.updateFilteredEvents)
                 }
                 
             case .editEvent(.dismiss):
                 state.editEvent = nil
-                return .none
-                
-            case let .setSortOrder(order):
-                state.sortOrder = order
-                return .none
-                
-            case let .searchTextChanged(text):
-                state.searchText = text
                 return .none
                 
             case .addEvent, .editEvent:
@@ -183,8 +192,8 @@ struct CountdownFeature {
         }
     }
     
-    func sortedAndFilteredEvents(_ events: IdentifiedArrayOf<Event>, sortOrder: State.SortOrder, searchText: String) -> [Event] {
-        var filteredEvents = Array(events)
+    private func sortedAndFilteredEvents(_ events: [Event], sortOrder: State.SortOrder, searchText: String) -> [Event] {
+        var filteredEvents = events
         
         // 検索フィルタリング
         if !searchText.isEmpty {

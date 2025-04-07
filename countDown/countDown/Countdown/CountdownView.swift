@@ -2,81 +2,69 @@ import SwiftUI
 import ComposableArchitecture
 
 struct CountdownView: View {
-    let store: StoreOf<CountdownFeature>
+    @Bindable var store: StoreOf<CountdownFeature>
     
     var body: some View {
-        WithViewStore(store, observe: { $0 }) { viewStore in
-            NavigationStack {
-                List {
-                    Section {
-                        Picker("並び替え", selection: viewStore.binding(
-                            get: \.sortOrder,
-                            send: { .setSortOrder($0) }
-                        )) {
-                            Text("日付順").tag(CountdownFeature.State.SortOrder.date)
-                            Text("残り日数順").tag(CountdownFeature.State.SortOrder.daysRemaining)
-                        }
-                        .pickerStyle(.segmented)
+        NavigationStack {
+            List {
+                Section {
+                    Picker("並び替え", selection: $store.sortOrder) {
+                        Text("日付順").tag(CountdownFeature.State.SortOrder.date)
+                        Text("残り日数順").tag(CountdownFeature.State.SortOrder.daysRemaining)
                     }
-                    
-                    Section {
-                        ForEach(viewStore.sortedAndFilteredEvents(
-                            viewStore.events,
-                            sortOrder: viewStore.sortOrder,
-                            searchText: viewStore.searchText
-                        )) { event in
-                            EventRow(event: event)
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    viewStore.send(.eventTapped(event))
-                                }
-                                .swipeActions {
-                                    Button(role: .destructive) {
-                                        if let index = viewStore.events.firstIndex(where: { $0.id == event.id }) {
-                                            viewStore.send(.deleteEvent(IndexSet(integer: index)))
-                                        }
-                                    } label: {
-                                        Label("削除", systemImage: "trash")
+                    .pickerStyle(.segmented)
+                }
+                
+                Section {
+                    ForEach(store.filteredEvents) { event in
+                        EventRow(event: event)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                store.send(.eventTapped(event))
+                            }
+                            .swipeActions {
+                                Button(role: .destructive) {
+                                    if let index = store.events.firstIndex(where: { $0.id == event.id }) {
+                                        store.send(.deleteEvent(IndexSet(integer: index)))
                                     }
+                                } label: {
+                                    Label("削除", systemImage: "trash")
                                 }
-                        }
-                    }
-                }
-                .searchable(
-                    text: viewStore.binding(
-                        get: \.searchText,
-                        send: { .searchTextChanged($0) }
-                    ),
-                    prompt: "イベントを検索"
-                )
-                .navigationTitle("カウントダウン")
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button {
-                            viewStore.send(.addButtonTapped)
-                        } label: {
-                            Image(systemName: "plus")
-                        }
-                    }
-                }
-                .sheet(
-                    store: store.scope(state: \.$addEvent, action: { .addEvent($0) })
-                ) { store in
-                    NavigationStack {
-                        AddEventView(store: store)
-                    }
-                }
-                .sheet(
-                    store: store.scope(state: \.$editEvent, action: { .editEvent($0) })
-                ) { store in
-                    NavigationStack {
-                        AddEventView(store: store)
+                            }
                     }
                 }
             }
-            .onAppear {
-                viewStore.send(.onAppear)
+            .searchable(
+                text: $store.searchText,
+                prompt: "イベントを検索"
+            )
+            .navigationTitle("カウントダウン")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        store.send(.addButtonTapped)
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                }
             }
+            .sheet(
+                store: store.scope(state: \.$addEvent, action: { .addEvent($0) })
+            ) { store in
+                NavigationStack {
+                    AddEventView(store: store)
+                }
+            }
+            .sheet(
+                store: store.scope(state: \.$editEvent, action: { .editEvent($0) })
+            ) { store in
+                NavigationStack {
+                    AddEventView(store: store)
+                }
+            }
+        }
+        .onAppear {
+            store.send(.onAppear)
         }
     }
 }
