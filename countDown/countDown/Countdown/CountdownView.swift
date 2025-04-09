@@ -62,9 +62,10 @@ struct CountdownView: View {
                     AddEventView(store: store)
                 }
             }
-        }
-        .onAppear {
-            store.send(.onAppear)
+            .onAppear {
+                store.send(.onAppear)
+            }
+            .alert(store: store.scope(state: \.$alert, action: { .alert($0) }))
         }
     }
 }

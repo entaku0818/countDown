@@ -107,6 +107,9 @@ struct CountdownFeature {
         var filteredEvents: [Event] = []
         @Presents var addEvent: AddEventFeature.State?
         @Presents var editEvent: AddEventFeature.State?
+        @Presents var alert: AlertState<Action.Alert>?
+        
+        static let freeVersionEventLimit = 3
         
         enum SortOrder: Equatable {
             case date
@@ -124,6 +127,11 @@ struct CountdownFeature {
         case addEvent(PresentationAction<AddEventFeature.Action>)
         case editEvent(PresentationAction<AddEventFeature.Action>)
         case updateFilteredEvents
+        case alert(PresentationAction<Alert>)
+        
+        enum Alert: Equatable {
+            case eventLimitReached
+        }
     }
     
     @Dependency(\.eventClient) var eventClient
@@ -155,6 +163,21 @@ struct CountdownFeature {
                 return .send(.updateFilteredEvents)
                 
             case .addButtonTapped:
+                if state.events.count >= State.freeVersionEventLimit {
+                    state.alert = AlertState {
+                        TextState("イベント数の制限に達しました")
+                    } actions: {
+                        ButtonState(role: .cancel) {
+                            TextState("OK")
+                        }
+                        ButtonState {
+                            TextState("プレミアム版にアップグレード")
+                        }
+                    } message: {
+                        TextState("無料版では最大3つのイベントしか登録できません。プレミアム版にアップグレードすると、無制限にイベントを登録できます。")
+                    }
+                    return .none
+                }
                 state.addEvent = AddEventFeature.State(event: Event(title: "", date: Date()))
                 return .none
                 
@@ -199,6 +222,8 @@ struct CountdownFeature {
                 return .none
                 
             case .addEvent, .editEvent:
+                return .none
+            case .alert(_):
                 return .none
             }
         }
