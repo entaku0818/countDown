@@ -49,14 +49,14 @@ struct CountdownView: View {
                 }
             }
             .sheet(
-                store: store.scope(state: \.$addEvent, action: { .addEvent($0) })
+                store: store.scope(state: \.$addEvent, action: \.addEvent )
             ) { store in
                 NavigationStack {
                     AddEventView(store: store)
                 }
             }
             .sheet(
-                store: store.scope(state: \.$editEvent, action: { .editEvent($0) })
+                store: store.scope(state: \.$editEvent, action: \.editEvent )
             ) { store in
                 NavigationStack {
                     AddEventView(store: store)
@@ -65,7 +65,7 @@ struct CountdownView: View {
             .onAppear {
                 store.send(.onAppear)
             }
-            .alert(store: store.scope(state: \.$alert, action: { .alert($0) }))
+            .alert(store: store.scope(state: \.$alert, action: \.alert ))
         }
     }
 }
