@@ -89,7 +89,7 @@ struct EventRow: View {
                 ShareButton(
                     title: event.title,
                     date: event.date,
-                    description: event.description
+                    description: event.note
                 )
                 
                 CountdownDisplay(event: event)
