@@ -19,6 +19,8 @@ struct ShareButton: View {
             .foregroundColor(.white)
             .cornerRadius(8)
         }
+        .buttonStyle(PlainButtonStyle())
+        .contentShape(Rectangle())
     }
 }
 

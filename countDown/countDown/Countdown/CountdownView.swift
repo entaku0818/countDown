@@ -17,7 +17,7 @@ struct CountdownView: View {
                 
                 Section {
                     ForEach(store.filteredEvents) { event in
-                        EventRow(event: event)
+                        EventRow(event: event, store: store)
                             .contentShape(Rectangle())
                             .onTapGesture {
                                 store.send(.eventTapped(event))
@@ -72,6 +72,7 @@ struct CountdownView: View {
 
 struct EventRow: View {
     var event: Event
+    @Bindable var store: StoreOf<CountdownFeature>
     
     var body: some View {
         HStack {
@@ -91,6 +92,7 @@ struct EventRow: View {
                     date: event.date,
                     description: event.note
                 )
+                .buttonStyle(PlainButtonStyle())
                 
                 CountdownDisplay(event: event)
             }
