@@ -23,6 +23,7 @@ struct AddEventFeature {
         
         enum Delegate: Equatable {
             case saveEvent(Event)
+            case dismiss
         }
     }
     
@@ -38,7 +39,7 @@ struct AddEventFeature {
                 return .send(.delegate(.saveEvent(state.event)))
                 
             case .cancelButtonTapped:
-                return .none
+                return .send(.delegate(.dismiss))
                 
             case .delegate:
                 return .none
