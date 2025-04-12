@@ -85,7 +85,15 @@ struct EventRow: View {
             
             Spacer()
             
-            CountdownDisplay(event: event)
+            HStack(spacing: 16) {
+                ShareButton(
+                    title: event.title,
+                    date: event.date,
+                    description: event.description
+                )
+                
+                CountdownDisplay(event: event)
+            }
         }
         .padding(.vertical, 8)
     }
