@@ -195,19 +195,16 @@ struct CountdownFeature {
                 state.editEvent = AddEventFeature.State(event: event, mode: .edit)
                 return .none
                 
-            case let .addEvent(.presented(.delegate(.saveEvent(event)))):
+            case let .addEvent(.delegate(.saveEvent(let event))):
                 state.events.append(event)
-                state.addEvent = nil
-                return .run { send in
-                    await eventClient.saveEvent(event)
-                    await send(.updateFilteredEvents)
-                }
-                
-            case .addEvent(.dismiss):
                 state.addEvent = nil
                 return .none
                 
-            case let .editEvent(.presented(.delegate(.saveEvent(event)))):
+            case .addEvent(.delegate(.dismiss)):
+                state.addEvent = nil
+                return .none
+                
+            case let .editEvent(.delegate(.saveEvent(let event))):
                 if let index = state.events.firstIndex(where: { $0.id == event.id }) {
                     state.events[index] = event
                 }
@@ -217,7 +214,7 @@ struct CountdownFeature {
                     await send(.updateFilteredEvents)
                 }
                 
-            case .editEvent(.dismiss):
+            case .editEvent(.delegate(.dismiss)):
                 state.editEvent = nil
                 return .none
                 
