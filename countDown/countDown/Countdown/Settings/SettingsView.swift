@@ -14,7 +14,6 @@ struct SettingsView: View {
     var body: some View {
         List {
             Section("一般設定") {
-                Toggle("通知を有効にする", isOn: .constant(true))
                 
                 NavigationLink(destination: Text("利用規約画面をここに実装")) {
                     Text("利用規約")
