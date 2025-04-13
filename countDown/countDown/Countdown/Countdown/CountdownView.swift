@@ -14,23 +14,30 @@ struct CountdownView: View {
                     }
                     .pickerStyle(.segmented)
                 }
-                
+
                 Section {
                     ForEach(store.filteredEvents) { event in
-                        EventRow(event: event)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
+                        NavigationLink {
+                            EventDetailView(event: event)
+                        } label: {
+                            EventRow(event: event)
+                        }
+                        .swipeActions {
+                            Button {
                                 store.send(.eventTapped(event))
+                            } label: {
+                                Label("編集", systemImage: "pencil")
                             }
-                            .swipeActions {
-                                Button(role: .destructive) {
-                                    if let index = store.events.firstIndex(where: { $0.id == event.id }) {
-                                        store.send(.deleteEvent(IndexSet(integer: index)))
-                                    }
-                                } label: {
-                                    Label("削除", systemImage: "trash")
+                            .tint(.blue)
+
+                            Button(role: .destructive) {
+                                if let index = store.events.firstIndex(where: { $0.id == event.id }) {
+                                    store.send(.deleteEvent(IndexSet(integer: index)))
                                 }
+                            } label: {
+                                Label("削除", systemImage: "trash")
                             }
+                        }
                     }
                 }
             }
