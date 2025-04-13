@@ -18,21 +18,6 @@ struct CountdownView: View {
                 }
                 
                 List {
-                    // ユーザー情報セクション
-                    if let user = store.user {
-                        Section("ユーザー情報") {
-                            HStack {
-                                Image(systemName: "person.fill")
-                                    .foregroundColor(.blue)
-                                Text(user.isAnonymous ? "匿名ユーザー" : "認証済みユーザー")
-                                Spacer()
-                                Text(user.id.prefix(8) + "...")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    }
-                    
                     Section {
                         Picker("並び替え", selection: $store.sortOrder) {
                             Text("日付順").tag(CountdownFeature.State.SortOrder.date)
@@ -73,6 +58,12 @@ struct CountdownView: View {
                 )
                 .navigationTitle("カウントダウン")
                 .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        NavigationLink(destination: SettingsView(user: store.user)) {
+                            Image(systemName: "gear")
+                        }
+                    }
+                    
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button {
                             store.send(.addButtonTapped)
