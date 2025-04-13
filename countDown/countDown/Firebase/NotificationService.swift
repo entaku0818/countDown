@@ -14,11 +14,11 @@ struct NotificationService {
 }
 
 class NotificationServiceLive: NSObject, MessagingDelegate {
-    let firestoreClient: FirestoreClient
+    let eventStorage: EventStorageClient
     private var saveFCMTokenTask: Task<Void, Error>?
     
-    init(firestoreClient: FirestoreClient) {
-        self.firestoreClient = firestoreClient
+    init(eventStorage: EventStorageClient) {
+        self.eventStorage = eventStorage
         super.init()
     }
     
@@ -68,7 +68,7 @@ class NotificationServiceLive: NSObject, MessagingDelegate {
         
         // FCMトークンをFirestoreに保存
         do {
-            try await firestoreClient.saveUserToken(deviceId, fcmToken)
+            try await eventStorage.saveUserToken(deviceId, fcmToken)
             print("FCM Token saved to Firestore")
         } catch {
             print("Error saving FCM token to Firestore: \(error)")
@@ -120,8 +120,8 @@ class NotificationServiceLive: NSObject, MessagingDelegate {
 
 extension NotificationService: DependencyKey {
     static var liveValue: NotificationService {
-        let firestoreClient = FirestoreClient.liveValue
-        let service = NotificationServiceLive(firestoreClient: firestoreClient)
+        let eventStorage = EventStorageClient.liveValue
+        let service = NotificationServiceLive(eventStorage: eventStorage)
         
         return NotificationService(
             registerForRemoteNotifications: {
