@@ -203,7 +203,7 @@ struct CountdownFeature {
                     await send(.updateFilteredEvents)
                 }
                 
-            case .addEvent(.dismiss):
+            case .addEvent(.presented(.delegate(.dismiss))):
                 state.addEvent = nil
                 return .none
                 
@@ -217,7 +217,8 @@ struct CountdownFeature {
                     await send(.updateFilteredEvents)
                 }
                 
-            case .editEvent(.dismiss):
+            case .editEvent(.presented(.delegate(.dismiss))):
+
                 state.editEvent = nil
                 return .none
                 
