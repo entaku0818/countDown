@@ -20,14 +20,16 @@ extension AuthClient: DependencyKey {
     static var liveValue: Self {
         return Self(
             signInAnonymously: {
-                let authResult = try await Auth.auth().signInAnonymously()
-                guard let firebaseUser = authResult.user else {
+                do {
+                    let authResult = try await Auth.auth().signInAnonymously()
+                    return User(
+                        id: authResult.user.uid,
+                        isAnonymous: authResult.user.isAnonymous
+                    )
+                } catch {
+                    print("匿名認証エラー: \(error.localizedDescription)")
                     throw AuthError.userNotFound
                 }
-                return User(
-                    id: firebaseUser.uid,
-                    isAnonymous: firebaseUser.isAnonymous
-                )
             },
             getCurrentUser: {
                 guard let firebaseUser = Auth.auth().currentUser else {

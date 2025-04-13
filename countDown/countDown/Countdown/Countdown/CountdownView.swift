@@ -11,7 +11,7 @@ struct CountdownView: View {
                 if store.isSigningIn {
                     Color.black.opacity(0.1)
                         .ignoresSafeArea()
-                    ProgressView("匿名認証中...")
+                    ProgressView("認証中...")
                         .padding()
                         .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemBackground)))
                         .shadow(radius: 10)
