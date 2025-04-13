@@ -11,6 +11,8 @@ struct CountdownFeature {
         var sortOrder: SortOrder = .date
         var searchText: String = ""
         var filteredEvents: [Event] = []
+        var user: User? = nil
+        var isSigningIn: Bool = false
         @Presents var addEvent: AddEventFeature.State?
         @Presents var editEvent: AddEventFeature.State?
         @Presents var alert: AlertState<Action.Alert>?
@@ -26,6 +28,8 @@ struct CountdownFeature {
     enum Action: BindableAction {
         case binding(BindingAction<State>)
         case onAppear
+        case anonymousSignInRequested
+        case signInResponse(TaskResult<User>)
         case eventsLoaded([Event])
         case sharedEventsLoaded([Event])
         case addButtonTapped
@@ -45,11 +49,13 @@ struct CountdownFeature {
             case notificationScheduled
             case eventShared
             case error(String)
+            case authError(String)
         }
     }
     
     @Dependency(\.eventStorage) var eventStorage
     @Dependency(\.notificationService) var notificationService
+    @Dependency(\.authClient) var authClient
     
     var body: some ReducerOf<Self> {
         BindingReducer()
@@ -68,6 +74,34 @@ struct CountdownFeature {
                 return .none
                 
             case .onAppear:
+                // 既存のユーザーがいるか確認
+                if let currentUser = authClient.getCurrentUser() {
+                    state.user = currentUser
+                    return .run { send in
+                        // ローカルとFirestoreのイベントを取得
+                        let events = await eventStorage.loadEvents()
+                        await send(.eventsLoaded(events))
+                        
+                        // 共有されたイベントを取得
+                        let sharedEvents = await eventStorage.getSharedEvents()
+                        await send(.sharedEventsLoaded(sharedEvents))
+                    }
+                } else {
+                    // ユーザーがいなければ匿名サインインを要求
+                    return .send(.anonymousSignInRequested)
+                }
+                
+            case .anonymousSignInRequested:
+                state.isSigningIn = true
+                return .run { send in
+                    await send(.signInResponse(
+                        TaskResult { try await authClient.signInAnonymously() }
+                    ))
+                }
+                
+            case let .signInResponse(.success(user)):
+                state.user = user
+                state.isSigningIn = false
                 return .run { send in
                     // ローカルとFirestoreのイベントを取得
                     let events = await eventStorage.loadEvents()
@@ -77,6 +111,11 @@ struct CountdownFeature {
                     let sharedEvents = await eventStorage.getSharedEvents()
                     await send(.sharedEventsLoaded(sharedEvents))
                 }
+                
+            case let .signInResponse(.failure(error)):
+                state.isSigningIn = false
+                state.user = nil
+                return .send(.showAlert(.authError("認証エラーが発生しました: \(error.localizedDescription)")))
                 
             case let .eventsLoaded(events):
                 state.events = events
@@ -125,7 +164,8 @@ struct CountdownFeature {
                 return .none
                 
             case let .shareEvent(event):
-                let userId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
+                // ユーザーIDを匿名ユーザーのIDに変更
+                let userId = state.user?.id ?? UUID().uuidString
                 // 仮のユーザーリスト（実際にはグループ機能から選択）
                 let sharedWith = ["user1", "user2"]
                 let sharingInfo = SharingInfo(createdBy: userId, sharedWith: sharedWith)
@@ -176,6 +216,19 @@ struct CountdownFeature {
                     } actions: {
                         ButtonState(role: .cancel) {
                             TextState("OK")
+                        }
+                    } message: {
+                        TextState(message)
+                    }
+                case let .authError(message):
+                    state.alert = AlertState {
+                        TextState("認証エラー")
+                    } actions: {
+                        ButtonState(role: .cancel) {
+                            TextState("OK")
+                        }
+                        ButtonState {
+                            TextState("再試行")
                         }
                     } message: {
                         TextState(message)

@@ -6,73 +6,100 @@ struct CountdownView: View {
     
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    Picker("並び替え", selection: $store.sortOrder) {
-                        Text("日付順").tag(CountdownFeature.State.SortOrder.date)
-                        Text("残り日数順").tag(CountdownFeature.State.SortOrder.daysRemaining)
-                    }
-                    .pickerStyle(.segmented)
+            ZStack {
+                // サインイン中のローディングオーバーレイ
+                if store.isSigningIn {
+                    Color.black.opacity(0.1)
+                        .ignoresSafeArea()
+                    ProgressView("匿名認証中...")
+                        .padding()
+                        .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemBackground)))
+                        .shadow(radius: 10)
                 }
-
-                Section {
-                    ForEach(store.filteredEvents) { event in
-                        NavigationLink {
-                            EventDetailView(event: event)
-                        } label: {
-                            EventRow(event: event)
-                        }
-                        .swipeActions {
-                            Button {
-                                store.send(.eventTapped(event))
-                            } label: {
-                                Label("編集", systemImage: "pencil")
+                
+                List {
+                    // ユーザー情報セクション
+                    if let user = store.user {
+                        Section("ユーザー情報") {
+                            HStack {
+                                Image(systemName: "person.fill")
+                                    .foregroundColor(.blue)
+                                Text(user.isAnonymous ? "匿名ユーザー" : "認証済みユーザー")
+                                Spacer()
+                                Text(user.id.prefix(8) + "...")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                             }
-                            .tint(.blue)
+                        }
+                    }
+                    
+                    Section {
+                        Picker("並び替え", selection: $store.sortOrder) {
+                            Text("日付順").tag(CountdownFeature.State.SortOrder.date)
+                            Text("残り日数順").tag(CountdownFeature.State.SortOrder.daysRemaining)
+                        }
+                        .pickerStyle(.segmented)
+                    }
 
-                            Button(role: .destructive) {
-                                if let index = store.events.firstIndex(where: { $0.id == event.id }) {
-                                    store.send(.deleteEvent(IndexSet(integer: index)))
+                    Section {
+                        ForEach(store.filteredEvents) { event in
+                            NavigationLink {
+                                EventDetailView(event: event)
+                            } label: {
+                                EventRow(event: event)
+                            }
+                            .swipeActions {
+                                Button {
+                                    store.send(.eventTapped(event))
+                                } label: {
+                                    Label("編集", systemImage: "pencil")
                                 }
-                            } label: {
-                                Label("削除", systemImage: "trash")
+                                .tint(.blue)
+
+                                Button(role: .destructive) {
+                                    if let index = store.events.firstIndex(where: { $0.id == event.id }) {
+                                        store.send(.deleteEvent(IndexSet(integer: index)))
+                                    }
+                                } label: {
+                                    Label("削除", systemImage: "trash")
+                                }
                             }
                         }
                     }
                 }
-            }
-            .searchable(
-                text: $store.searchText,
-                prompt: "イベントを検索"
-            )
-            .navigationTitle("カウントダウン")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        store.send(.addButtonTapped)
-                    } label: {
-                        Image(systemName: "plus")
+                .searchable(
+                    text: $store.searchText,
+                    prompt: "イベントを検索"
+                )
+                .navigationTitle("カウントダウン")
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button {
+                            store.send(.addButtonTapped)
+                        } label: {
+                            Image(systemName: "plus")
+                        }
                     }
                 }
-            }
-            .sheet(
-                store: store.scope(state: \.$addEvent, action: \.addEvent )
-            ) { store in
-                NavigationStack {
-                    AddEventView(store: store)
+                .sheet(
+                    store: store.scope(state: \.$addEvent, action: \.addEvent )
+                ) { store in
+                    NavigationStack {
+                        AddEventView(store: store)
+                    }
                 }
-            }
-            .sheet(
-                store: store.scope(state: \.$editEvent, action: \.editEvent )
-            ) { store in
-                NavigationStack {
-                    AddEventView(store: store)
+                .sheet(
+                    store: store.scope(state: \.$editEvent, action: \.editEvent )
+                ) { store in
+                    NavigationStack {
+                        AddEventView(store: store)
+                    }
                 }
+                .onAppear {
+                    store.send(.onAppear)
+                }
+                .alert(store: store.scope(state: \.$alert, action: \.alert ))
             }
-            .onAppear {
-                store.send(.onAppear)
-            }
-            .alert(store: store.scope(state: \.$alert, action: \.alert ))
         }
     }
 } 
