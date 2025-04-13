@@ -7,6 +7,7 @@ struct CountdownFeature {
     @ObservableState
     struct State: Equatable {
         var events: [Event] = []
+        var sharedEvents: [Event] = []
         var sortOrder: SortOrder = .date
         var searchText: String = ""
         var filteredEvents: [Event] = []
@@ -26,9 +27,14 @@ struct CountdownFeature {
         case binding(BindingAction<State>)
         case onAppear
         case eventsLoaded([Event])
+        case sharedEventsLoaded([Event])
         case addButtonTapped
         case deleteEvent(IndexSet)
         case eventTapped(Event)
+        case shareEvent(Event)
+        case scheduleNotification(Event)
+        case syncEvents
+        case showAlert(Alert)
         case addEvent(PresentationAction<AddEventFeature.Action>)
         case editEvent(PresentationAction<AddEventFeature.Action>)
         case updateFilteredEvents
@@ -36,10 +42,14 @@ struct CountdownFeature {
         
         enum Alert: Equatable {
             case eventLimitReached
+            case notificationScheduled
+            case eventShared
+            case error(String)
         }
     }
     
-    @Dependency(\.eventClient) var eventClient
+    @Dependency(\.eventStorage) var eventStorage
+    @Dependency(\.notificationService) var notificationService
     
     var body: some ReducerOf<Self> {
         BindingReducer()
@@ -59,13 +69,27 @@ struct CountdownFeature {
                 
             case .onAppear:
                 return .run { send in
-                    let events = await eventClient.loadEvents()
+                    // ローカルとFirestoreのイベントを取得
+                    let events = await eventStorage.loadEvents()
                     await send(.eventsLoaded(events))
+                    
+                    // 共有されたイベントを取得
+                    let sharedEvents = await eventStorage.getSharedEvents()
+                    await send(.sharedEventsLoaded(sharedEvents))
                 }
                 
             case let .eventsLoaded(events):
                 state.events = events
                 return .send(.updateFilteredEvents)
+                
+            case let .sharedEventsLoaded(events):
+                state.sharedEvents = events
+                return .none
+                
+            case .syncEvents:
+                return .run { _ in
+                    await eventStorage.synchronizeEvents()
+                }
                 
             case .addButtonTapped:
                 if state.events.count >= State.freeVersionEventLimit {
@@ -91,7 +115,7 @@ struct CountdownFeature {
                 state.events.remove(atOffsets: indexSet)
                 return .run { send in
                     for event in eventsToDelete {
-                        await eventClient.deleteEvent(event.id)
+                        await eventStorage.deleteEvent(event.id)
                     }
                     await send(.updateFilteredEvents)
                 }
@@ -100,12 +124,86 @@ struct CountdownFeature {
                 state.editEvent = AddEventFeature.State(event: event, mode: .edit)
                 return .none
                 
+            case let .shareEvent(event):
+                let userId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
+                // 仮のユーザーリスト（実際にはグループ機能から選択）
+                let sharedWith = ["user1", "user2"]
+                let sharingInfo = SharingInfo(createdBy: userId, sharedWith: sharedWith)
+                
+                return .run { send in
+                    await eventStorage.updateEvent(event, sharingInfo)
+                    await send(.showAlert(.eventShared))
+                }
+                
+            case let .scheduleNotification(event):
+                return .run { send in
+                    // イベント前日の通知を設定
+                    let calendar = Calendar.current
+                    if let notificationDate = calendar.date(byAdding: .day, value: -1, to: event.date) {
+                        let title = "明日はイベントの日です"
+                        let body = "\(event.title)まであと1日です"
+                        
+                        await notificationService.scheduleLocalNotification(title, body, notificationDate)
+                        await send(.showAlert(.notificationScheduled))
+                    }
+                }
+                
+            case let .showAlert(alertType):
+                switch alertType {
+                case .notificationScheduled:
+                    state.alert = AlertState {
+                        TextState("通知がスケジュールされました")
+                    } actions: {
+                        ButtonState(role: .cancel) {
+                            TextState("OK")
+                        }
+                    } message: {
+                        TextState("イベント前日に通知が届きます")
+                    }
+                case .eventShared:
+                    state.alert = AlertState {
+                        TextState("イベントを共有しました")
+                    } actions: {
+                        ButtonState(role: .cancel) {
+                            TextState("OK")
+                        }
+                    } message: {
+                        TextState("選択したユーザーとイベントが共有されました")
+                    }
+                case let .error(message):
+                    state.alert = AlertState {
+                        TextState("エラーが発生しました")
+                    } actions: {
+                        ButtonState(role: .cancel) {
+                            TextState("OK")
+                        }
+                    } message: {
+                        TextState(message)
+                    }
+                case .eventLimitReached:
+                    state.alert = AlertState {
+                        TextState("イベント数の制限に達しました")
+                    } actions: {
+                        ButtonState(role: .cancel) {
+                            TextState("OK")
+                        }
+                        ButtonState {
+                            TextState("プレミアム版にアップグレード")
+                        }
+                    } message: {
+                        TextState("無料版では最大3つのイベントしか登録できません。プレミアム版にアップグレードすると、無制限にイベントを登録できます。")
+                    }
+                }
+                return .none
+                
             case let .addEvent(.presented(.delegate(.saveEvent(event)))):
                 state.events.append(event)
                 state.addEvent = nil
                 return .run { send in
-                    await eventClient.saveEvent(event)
+                    // イベントを保存（共有情報なし）
+                    await eventStorage.saveEvent(event, nil)
                     await send(.updateFilteredEvents)
+                    await send(.scheduleNotification(event))
                 }
                 
             case .addEvent(.presented(.delegate(.dismiss))):
@@ -118,7 +216,8 @@ struct CountdownFeature {
                 }
                 state.editEvent = nil
                 return .run { send in
-                    await eventClient.saveEvent(event)
+                    // 既存の共有情報は維持したまま更新
+                    await eventStorage.updateEvent(event, nil)
                     await send(.updateFilteredEvents)
                 }
                 
@@ -128,7 +227,8 @@ struct CountdownFeature {
                 
             case .addEvent, .editEvent:
                 return .none
-            case .alert(_):
+                
+            case .alert:
                 return .none
             }
         }
