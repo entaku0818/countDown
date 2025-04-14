@@ -44,11 +44,10 @@ extension EventStorageClient: DependencyKey {
         
         // Firestoreの設定
         let settings = db.settings
-        settings.isPersistenceEnabled = true
-        settings.cacheSizeBytes = FirestoreCacheSizeUnlimited
         db.settings = settings
         
         // UserDefaultsからイベントを読み込む関数
+        @Sendable
         func loadEventsFromDefaults() -> [Event] {
             guard let data = UserDefaults.standard.data(forKey: saveKey),
                   let events = try? JSONDecoder().decode([Event].self, from: data) else {
@@ -58,7 +57,7 @@ extension EventStorageClient: DependencyKey {
         }
         
         // UserDefaultsにイベントを保存する関数
-        func saveEventsToDefaults(_ events: [Event]) {
+        @Sendable func saveEventsToDefaults(_ events: [Event]) {
             if let encoded = try? JSONEncoder().encode(events) {
                 UserDefaults.standard.set(encoded, forKey: saveKey)
             }
