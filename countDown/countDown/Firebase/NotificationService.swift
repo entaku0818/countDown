@@ -1,6 +1,7 @@
 import Foundation
 import UIKit
 import FirebaseMessaging
+import FirebaseAnalytics
 import ComposableArchitecture
 import UserNotifications
 
