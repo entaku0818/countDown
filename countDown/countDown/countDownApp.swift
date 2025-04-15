@@ -102,7 +102,21 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
             ])
         }
     }
-    
+
+    func application(_ application: UIApplication,
+                    didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+                    fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+        print("バックグラウンドで通知を受信しました: \(userInfo)")
+
+        // Analyticsに記録
+        Analytics.logEvent("notification_received_background", parameters: [
+            "has_userInfo": !userInfo.isEmpty,
+            "timestamp": Date().timeIntervalSince1970
+        ])
+
+        completionHandler(.newData)
+    }
+
     // MARK: - UNUserNotificationCenterDelegate
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                willPresent notification: UNNotification,
