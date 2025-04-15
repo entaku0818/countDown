@@ -1,5 +1,6 @@
 import Foundation
 import FirebaseFirestore
+import FirebaseAuth
 import ComposableArchitecture
 import UIKit
 
@@ -46,6 +47,9 @@ extension EventStorageClient: DependencyKey {
         let settings = db.settings
         db.settings = settings
         
+        // 認証クライアントの取得
+        @Dependency(\.authClient) var authClient
+
         // UserDefaultsからイベントを読み込む関数
         @Sendable
         func loadEventsFromDefaults() -> [Event] {
@@ -64,6 +68,7 @@ extension EventStorageClient: DependencyKey {
         }
         
         // Firestoreからイベントをパースする関数
+        @Sendable
         func parseEventFromFirestore(document: QueryDocumentSnapshot) -> Event? {
             let data = document.data()
             
@@ -107,6 +112,7 @@ extension EventStorageClient: DependencyKey {
         }
         
         // イベントをFirestoreのドキュメントに変換する関数
+        @Sendable
         func eventToFirestoreData(event: Event) -> [String: Any] {
             return [
                 "id": event.id.uuidString,
@@ -121,11 +127,13 @@ extension EventStorageClient: DependencyKey {
                     "showSeconds": event.displayFormat.showSeconds,
                     "style": event.displayFormat.style.rawValue
                 ],
+                "userId": authClient.getCurrentUserId(),
                 "updatedAt": FieldValue.serverTimestamp()
             ]
         }
         
         // 共有情報をFirestoreのドキュメントに変換する関数
+        @Sendable
         func sharingInfoToFirestoreData(eventId: UUID, info: SharingInfo) -> [String: Any] {
             return [
                 "eventId": eventId.uuidString,
@@ -144,9 +152,16 @@ extension EventStorageClient: DependencyKey {
                 let localEvents = loadEventsFromDefaults()
                 
                 do {
-                    // Firestoreからイベントを取得
-                    let userId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
-                    let eventsQuery = db.collection("events")
+                    // 現在のユーザーIDを取得
+                    let userId = authClient.getCurrentUserId()
+                    
+                    // ユーザーIDが空の場合はローカルイベントのみを返す
+                    if userId.isEmpty {
+                        return localEvents
+                    }
+                    
+                    // Firestoreから現在のユーザーのイベントを取得
+                    let eventsQuery = db.collection("events").whereField("userId", isEqualTo: userId)
                     let eventsSnapshot = try await eventsQuery.getDocuments()
                     
                     let events = eventsSnapshot.documents.compactMap { parseEventFromFirestore(document: $0) }
@@ -259,8 +274,13 @@ extension EventStorageClient: DependencyKey {
             },
             
             getSharedEvents: {
-                let userId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
+                let userId = authClient.getCurrentUserId()
                 var allEvents: [Event] = []
+                
+                // ユーザーIDが空の場合は空の配列を返す
+                if userId.isEmpty {
+                    return []
+                }
                 
                 do {
                     // 共有情報コレクションからユーザーに共有されているイベントIDを取得
@@ -306,6 +326,13 @@ extension EventStorageClient: DependencyKey {
                     // ローカルイベントを取得
                     let localEvents = loadEventsFromDefaults()
                     
+                    // ユーザーIDが空の場合は同期をスキップ
+                    let userId = authClient.getCurrentUserId()
+                    if userId.isEmpty {
+                        print("ユーザーIDが空のため、イベントの同期をスキップします")
+                        return
+                    }
+                    
                     // Firestoreに全てのローカルイベントを同期
                     for event in localEvents {
                         let eventRef = db.collection("events").document(event.id.uuidString)
@@ -321,7 +348,13 @@ extension EventStorageClient: DependencyKey {
             
             saveUserToken: { deviceId, token in
                 let userTokenRef = db.collection("user_tokens").document(deviceId)
-                let userId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
+                let userId = authClient.getCurrentUserId()
+                
+                // ユーザーIDが空の場合はエラーを投げる
+                if userId.isEmpty {
+                    print("ユーザーIDが空のため、トークンを保存できません")
+                    throw EventStorageError.userIdNotFound
+                }
                 
                 let tokenData: [String: Any] = [
                     "id": deviceId,
@@ -362,6 +395,11 @@ extension EventStorageClient: DependencyKey {
             }
         )
     }()
+}
+
+// MARK: - Error
+enum EventStorageError: Error {
+    case userIdNotFound
 }
 
 extension DependencyValues {

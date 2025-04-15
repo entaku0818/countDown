@@ -1,12 +1,14 @@
 import Foundation
 import FirebaseAuth
 import ComposableArchitecture
+import UIKit
 
 // MARK: - AuthClient Interface
 struct AuthClient {
     var signInAnonymously: @Sendable () async throws -> User
     var getCurrentUser: @Sendable () -> User?
     var signOut: @Sendable () throws -> Void
+    var getCurrentUserId: @Sendable () -> String
 }
 
 // MARK: - User Model
@@ -42,6 +44,15 @@ extension AuthClient: DependencyKey {
             },
             signOut: {
                 try Auth.auth().signOut()
+            },
+            getCurrentUserId: {
+                // Firebase Authから現在のユーザーIDを取得
+                if let currentUser = Auth.auth().currentUser {
+                    return currentUser.uid
+                }
+                
+                // 匿名ユーザーがいない場合は空文字を返す
+                return ""
             }
         )
     }
@@ -57,7 +68,10 @@ extension AuthClient {
             getCurrentUser: {
                 return User(id: "test-user-id", isAnonymous: true)
             },
-            signOut: { }
+            signOut: { },
+            getCurrentUserId: {
+                return "test-user-id"
+            }
         )
     }
 }
