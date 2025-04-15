@@ -88,11 +88,18 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
             return
         }
         
-        print("FCM registration token: \(token)")
+        print("======================= FCM TOKEN =======================")
+        print("\(token)")
+        print("=========================================================")
         
         // トークンを保存
         Task {
             await notificationService.updateFCMToken(token)
+            
+            // Analyticsに記録
+            Analytics.logEvent("fcm_token_updated", parameters: [
+                "token_length": token.count
+            ])
         }
     }
     

@@ -15,6 +15,8 @@ struct SettingsView: View {
     
     @State private var notificationStatus: NotificationAuthorizationStatus = .notDetermined
     @State private var tokenStatus: TokenStatus?
+    @State private var showCopiedMessage = false
+    @State private var copiedTokenType = ""
     
     var body: some View {
         List {
@@ -86,6 +88,19 @@ struct SettingsView: View {
                                     Text(apnsToken)
                                         .font(.caption)
                                         .foregroundColor(.secondary)
+                                        .padding(8)
+                                        .background(Color(.systemGray6))
+                                        .cornerRadius(8)
+                                        .onTapGesture {
+                                            UIPasteboard.general.string = apnsToken
+                                            copiedTokenType = "APNS"
+                                            showCopiedMessage = true
+                                            
+                                            // 3秒後に通知を消す
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                                showCopiedMessage = false
+                                            }
+                                        }
                                 } else {
                                     Text("APNSトークン: 未取得")
                                         .foregroundColor(.red)
@@ -93,9 +108,46 @@ struct SettingsView: View {
                                 
                                 if let fcmToken = tokenStatus.fcmToken {
                                     Text("FCMトークン:")
-                                    Text(fcmToken)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+                                    VStack(alignment: .leading) {
+                                        Text(fcmToken)
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                            .padding(8)
+                                            .background(Color(.systemGray6))
+                                            .cornerRadius(8)
+                                            .onTapGesture {
+                                                UIPasteboard.general.string = fcmToken
+                                                copiedTokenType = "FCM"
+                                                showCopiedMessage = true
+                                                
+                                                // コンソールにもトークンを表示
+                                                print("======================= FCM TOKEN (COPIED) =======================")
+                                                print("\(fcmToken)")
+                                                print("================================================================")
+                                                
+                                                // 3秒後に通知を消す
+                                                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                                    showCopiedMessage = false
+                                                }
+                                            }
+                                        
+                                        Button("コピー") {
+                                            UIPasteboard.general.string = fcmToken
+                                            copiedTokenType = "FCM"
+                                            showCopiedMessage = true
+                                            
+                                            // コンソールにもトークンを表示
+                                            print("======================= FCM TOKEN (COPIED) =======================")
+                                            print("\(fcmToken)")
+                                            print("================================================================")
+                                            
+                                            // 3秒後に通知を消す
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                                showCopiedMessage = false
+                                            }
+                                        }
+                                        .padding(.top, 4)
+                                    }
                                 } else {
                                     Text("FCMトークン: 未取得")
                                         .foregroundColor(.red)
@@ -107,6 +159,19 @@ struct SettingsView: View {
                     
                     Button("通知テスト") {
                         scheduleTestNotification()
+                    }
+                    
+                    if showCopiedMessage {
+                        HStack {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                            Text("\(copiedTokenType)トークンをコピーしました")
+                        }
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
+                        .transition(.opacity)
+                        .animation(.easeInOut, value: showCopiedMessage)
                     }
                 }
             }
@@ -168,6 +233,13 @@ struct SettingsView: View {
             
             // トークンステータスを取得
             tokenStatus = notificationService.getTokenStatus()
+            
+            // トークンが取得できたらコンソールに表示
+            if let fcmToken = tokenStatus?.fcmToken {
+                print("======================= FCM TOKEN (AVAILABLE) =======================")
+                print("\(fcmToken)")
+                print("====================================================================")
+            }
         }
     }
     
