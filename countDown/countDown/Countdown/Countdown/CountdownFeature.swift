@@ -259,10 +259,6 @@ struct CountdownFeature {
                     await send(.scheduleNotification(event))
                 }
                 
-            case .addEvent(.presented(.delegate(.dismiss))):
-                state.addEvent = nil
-                return .none
-                
             case let .editEvent(.presented(.delegate(.saveEvent(event)))):
                 if let index = state.events.firstIndex(where: { $0.id == event.id }) {
                     state.events[index] = event
@@ -274,11 +270,27 @@ struct CountdownFeature {
                     await send(.updateFilteredEvents)
                 }
                 
+            case .addEvent(.presented(.delegate(.dismiss))):
+                state.addEvent = nil
+                return .none
+                
             case .editEvent(.presented(.delegate(.dismiss))):
                 state.editEvent = nil
                 return .none
                 
+            case .addEvent(.dismiss):
+                state.addEvent = nil
+                return .none
+                
+            case .editEvent(.dismiss):
+                state.editEvent = nil
+                return .none
+                
             case .addEvent, .editEvent:
+                return .none
+                
+            case .alert(.dismiss):
+                state.alert = nil
                 return .none
                 
             case .alert:
