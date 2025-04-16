@@ -16,7 +16,6 @@ struct SettingsView: View {
     @State private var notificationStatus: NotificationAuthorizationStatus = .notDetermined
     @State private var tokenStatus: TokenStatus?
     @State private var showCopiedMessage = false
-    @State private var copiedTokenType = ""
     
     var body: some View {
         List {
@@ -83,29 +82,6 @@ struct SettingsView: View {
                                 Text("登録状態: \(tokenStatus.isRegistered ? "登録済み" : "未登録")")
                                     .foregroundColor(tokenStatus.isRegistered ? .green : .red)
                                 
-                                if let apnsToken = tokenStatus.apnsToken {
-                                    Text("APNSトークン:")
-                                    Text(apnsToken)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                        .padding(8)
-                                        .background(Color(.systemGray6))
-                                        .cornerRadius(8)
-                                        .onTapGesture {
-                                            UIPasteboard.general.string = apnsToken
-                                            copiedTokenType = "APNS"
-                                            showCopiedMessage = true
-                                            
-                                            // 3秒後に通知を消す
-                                            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                                                showCopiedMessage = false
-                                            }
-                                        }
-                                } else {
-                                    Text("APNSトークン: 未取得")
-                                        .foregroundColor(.red)
-                                }
-                                
                                 if let fcmToken = tokenStatus.fcmToken {
                                     Text("FCMトークン:")
                                     VStack(alignment: .leading) {
@@ -117,7 +93,6 @@ struct SettingsView: View {
                                             .cornerRadius(8)
                                             .onTapGesture {
                                                 UIPasteboard.general.string = fcmToken
-                                                copiedTokenType = "FCM"
                                                 showCopiedMessage = true
                                                 
                                                 // コンソールにもトークンを表示
@@ -133,7 +108,6 @@ struct SettingsView: View {
                                         
                                         Button("コピー") {
                                             UIPasteboard.general.string = fcmToken
-                                            copiedTokenType = "FCM"
                                             showCopiedMessage = true
                                             
                                             // コンソールにもトークンを表示
@@ -165,7 +139,7 @@ struct SettingsView: View {
                         HStack {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundColor(.green)
-                            Text("\(copiedTokenType)トークンをコピーしました")
+                            Text("FCMトークンをコピーしました")
                         }
                         .padding()
                         .background(Color(.systemGray6))
@@ -231,14 +205,16 @@ struct SettingsView: View {
             // 通知ステータスを取得
             notificationStatus = await notificationService.getNotificationStatus()
             
-            // トークンステータスを取得
-            tokenStatus = notificationService.getTokenStatus()
-            
-            // トークンが取得できたらコンソールに表示
-            if let fcmToken = tokenStatus?.fcmToken {
-                print("======================= FCM TOKEN (AVAILABLE) =======================")
-                print("\(fcmToken)")
-                print("====================================================================")
+            // トークンステータスを取得（ユーザーIDを引数に渡す）
+            if let userId = user?.id {
+                tokenStatus = notificationService.getTokenStatus(userId)
+                
+                // トークンが取得できたらコンソールに表示
+                if let fcmToken = tokenStatus?.fcmToken {
+                    print("======================= FCM TOKEN (AVAILABLE) =======================")
+                    print("\(fcmToken)")
+                    print("====================================================================")
+                }
             }
         }
     }
@@ -247,7 +223,14 @@ struct SettingsView: View {
         Task {
             let now = Date()
             let testDate = now.addingTimeInterval(10) // 10秒後
-            await notificationService.scheduleLocalNotification("テスト通知", "これはテスト通知です", testDate)
+            
+            // ユーザーIDを取得（userがnilの場合は空文字列を使用）
+            let userId = user?.id ?? ""
+            if !userId.isEmpty {
+                await notificationService.scheduleLocalNotification("テスト通知", "これはテスト通知です", testDate, userId)
+            } else {
+                print("テスト通知の送信に失敗: ユーザーIDが空です")
+            }
         }
     }
 } 

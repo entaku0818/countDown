@@ -9,12 +9,12 @@ import UserNotifications
 struct NotificationService {
     var registerForRemoteNotifications: @Sendable () async -> Void
     var setupMessaging: @Sendable () async -> Void
-    var saveDeviceToken: @Sendable (Data) async -> Void
-    var updateFCMToken: @Sendable (String) async -> Void
-    var scheduleLocalNotification: @Sendable (String, String, Date) async -> Void
+    var saveDeviceToken: @Sendable (Data, String) async -> Void
+    var updateFCMToken: @Sendable (String, String) async -> Void
+    var scheduleLocalNotification: @Sendable (String, String, Date, String) async -> Void
     var getNotificationStatus: @Sendable () async -> NotificationAuthorizationStatus
     var openNotificationSettings: @Sendable () -> Void
-    var getTokenStatus: @Sendable () -> TokenStatus
+    var getTokenStatus: @Sendable (String) -> TokenStatus
 }
 
 // MARK: - Notification Models
@@ -28,15 +28,15 @@ enum NotificationAuthorizationStatus: Equatable {
 }
 
 struct TokenStatus: Equatable {
-    var apnsToken: String?
     var fcmToken: String?
     var isRegistered: Bool {
-        return apnsToken != nil && fcmToken != nil
+        return fcmToken != nil
     }
 }
 
 class NotificationServiceLive: NSObject, MessagingDelegate {
     let eventStorage: EventStorageClient
+    @Dependency(\.authClient) var authClient
     private var saveFCMTokenTask: Task<Void, Error>?
     
     init(eventStorage: EventStorageClient) {
@@ -72,49 +72,65 @@ class NotificationServiceLive: NSObject, MessagingDelegate {
         
         // FCMトークンの取得と保存を試みる
         if let fcmToken = Messaging.messaging().fcmToken {
-            await updateFCMToken(fcmToken)
+            let userId = authClient.getCurrentUserId()
+            if !userId.isEmpty {
+                await updateFCMToken(fcmToken, userId)
+            } else {
+                print("ユーザーIDが取得できないため、FCMトークンを保存できません")
+            }
         } else {
             print("FCMトークンがありません。アプリ起動後しばらくしてから再試行してください。")
         }
     }
     
-    func saveDeviceToken(_ tokenData: Data) async {
+    func saveDeviceToken(_ tokenData: Data, _ userId: String) async {
         let tokenString = tokenData.map { String(format: "%02.2hhx", $0) }.joined()
-        print("Device Token: \(tokenString)")
+        print("Device Token: \(tokenString) for userId: \(userId)")
         
-        // デバイストークンをローカルに保存
-        UserDefaults.standard.set(tokenString, forKey: "APNSDeviceToken")
+        guard !userId.isEmpty else {
+            print("ユーザーIDが空のため、デバイストークンを保存できません")
+            return
+        }
+        
+        // ユーザーごとのデバイストークンをUserDefaultsに保存
+        let key = "APNSToken_\(userId)"
+        UserDefaults.standard.set(tokenString, forKey: key)
         
         // 通知が成功したことをAnalyticsに記録
         Task {
             await MainActor.run {
                 Analytics.logEvent("apns_token_received", parameters: [
                     "success": true,
+                    "userId": userId,
                     "timestamp": Date().timeIntervalSince1970
                 ])
             }
         }
     }
     
-    func updateFCMToken(_ fcmToken: String) async {
-        print("FCM Token: \(fcmToken)")
+    func updateFCMToken(_ fcmToken: String, _ userId: String) async {
+        print("FCM Token: \(fcmToken) for userId: \(userId)")
         
-        // FCMトークンをローカルに保存
-        UserDefaults.standard.set(fcmToken, forKey: "FCMToken")
+        guard !userId.isEmpty else {
+            print("ユーザーIDが空のため、FCMトークンを保存できません")
+            return
+        }
         
-        // デバイスIDを取得
-        let deviceId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
+        // ユーザーごとのFCMトークンをUserDefaultsに保存
+        let key = "FCMToken_\(userId)"
+        UserDefaults.standard.set(fcmToken, forKey: key)
         
-        // FCMトークンをFirestoreに保存
+        // FCMトークンをFirestoreに保存（デバイスIDではなくユーザーIDを使用）
         do {
-            try await eventStorage.saveUserToken(deviceId, fcmToken)
-            print("FCM Token saved to Firestore")
+            try await eventStorage.saveUserToken(userId, fcmToken)
+            print("FCM Token saved to Firestore for userId: \(userId)")
             
             // 成功したことをAnalyticsに記録
             Task {
                 await MainActor.run {
                     Analytics.logEvent("fcm_token_saved", parameters: [
                         "success": true,
+                        "userId": userId,
                         "timestamp": Date().timeIntervalSince1970
                     ])
                 }
@@ -127,6 +143,7 @@ class NotificationServiceLive: NSObject, MessagingDelegate {
                 await MainActor.run {
                     Analytics.logEvent("fcm_token_error", parameters: [
                         "error": error.localizedDescription,
+                        "userId": userId,
                         "timestamp": Date().timeIntervalSince1970
                     ])
                 }
@@ -135,22 +152,22 @@ class NotificationServiceLive: NSObject, MessagingDelegate {
             // リトライロジック
             Task {
                 try? await Task.sleep(nanoseconds: 5_000_000_000) // 5秒待機
-                await retryUpdateFCMToken(fcmToken, deviceId, retryCount: 1)
+                await retryUpdateFCMToken(fcmToken, userId, retryCount: 1)
             }
         }
     }
     
     // リトライロジック（最大3回）
-    private func retryUpdateFCMToken(_ fcmToken: String, _ deviceId: String, retryCount: Int) async {
+    private func retryUpdateFCMToken(_ fcmToken: String, _ userId: String, retryCount: Int) async {
         guard retryCount <= 3 else {
             print("FCMトークンの保存に3回失敗しました。次回アプリ起動時に再試行します。")
             return
         }
         
-        print("FCMトークンの保存をリトライします。試行回数: \(retryCount)")
+        print("FCMトークンの保存をリトライします。試行回数: \(retryCount) userId: \(userId)")
         
         do {
-            try await eventStorage.saveUserToken(deviceId, fcmToken)
+            try await eventStorage.saveUserToken(userId, fcmToken)
             print("FCM Token successfully saved to Firestore on retry #\(retryCount)")
         } catch {
             print("Error saving FCM token to Firestore on retry #\(retryCount): \(error)")
@@ -158,37 +175,43 @@ class NotificationServiceLive: NSObject, MessagingDelegate {
             // さらにリトライ
             Task {
                 try? await Task.sleep(nanoseconds: UInt64(retryCount * 5_000_000_000)) // 待機時間を増やす
-                await retryUpdateFCMToken(fcmToken, deviceId, retryCount: retryCount + 1)
+                await retryUpdateFCMToken(fcmToken, userId, retryCount: retryCount + 1)
             }
         }
     }
     
-    func scheduleLocalNotification(title: String, body: String, triggerDate: Date) async {
+    func scheduleLocalNotification(title: String, body: String, triggerDate: Date, userId: String) async {
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
         content.sound = UNNotificationSound.default
         
+        // ユーザーIDを通知のユーザー情報に追加
+        content.userInfo = ["userId": userId]
+        
         let calendar = Calendar.current
         let components = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: triggerDate)
         let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
         
+        // 通知IDにユーザーIDを含める
+        let identifier = "notification_\(userId)_\(UUID().uuidString)"
         let request = UNNotificationRequest(
-            identifier: UUID().uuidString,
+            identifier: identifier,
             content: content,
             trigger: trigger
         )
         
         do {
             try await UNUserNotificationCenter.current().add(request)
-            print("Local notification scheduled for \(triggerDate)")
+            print("Local notification scheduled for \(triggerDate) userId: \(userId)")
             
             // 通知のスケジュールをAnalyticsに記録
             Task {
                 await MainActor.run {
                     Analytics.logEvent("notification_scheduled", parameters: [
                         "title": title,
-                        "date": triggerDate.timeIntervalSince1970
+                        "date": triggerDate.timeIntervalSince1970,
+                        "userId": userId
                     ])
                 }
             }
@@ -200,6 +223,7 @@ class NotificationServiceLive: NSObject, MessagingDelegate {
                 await MainActor.run {
                     Analytics.logEvent("notification_schedule_error", parameters: [
                         "error": error.localizedDescription,
+                        "userId": userId,
                         "timestamp": Date().timeIntervalSince1970
                     ])
                 }
@@ -245,13 +269,12 @@ class NotificationServiceLive: NSObject, MessagingDelegate {
         }
     }
     
-    // トークンステータスの取得
-    func getTokens() -> TokenStatus {
-        let apnsToken = UserDefaults.standard.string(forKey: "APNSDeviceToken")
-        let fcmToken = Messaging.messaging().fcmToken ?? UserDefaults.standard.string(forKey: "FCMToken")
+    // ユーザーごとのトークンステータスの取得
+    func getTokens(userId: String) -> TokenStatus {
+        let fcmTokenKey = "FCMToken_\(userId)"
+        let fcmToken = Messaging.messaging().fcmToken ?? UserDefaults.standard.string(forKey: fcmTokenKey)
         
         return TokenStatus(
-            apnsToken: apnsToken,
             fcmToken: fcmToken
         )
     }
@@ -270,7 +293,12 @@ class NotificationServiceLive: NSObject, MessagingDelegate {
         
         // 新しいタスクを作成
         saveFCMTokenTask = Task {
-            await updateFCMToken(token)
+            let userId = authClient.getCurrentUserId()
+            if !userId.isEmpty {
+                await updateFCMToken(token, userId)
+            } else {
+                print("ユーザーIDが取得できないため、FCMトークンを保存できません")
+            }
         }
     }
 }
@@ -287,14 +315,14 @@ extension NotificationService: DependencyKey {
             setupMessaging: {
                 await service.setupMessaging()
             },
-            saveDeviceToken: { tokenData in
-                await service.saveDeviceToken(tokenData)
+            saveDeviceToken: { tokenData, userId in
+                await service.saveDeviceToken(tokenData, userId)
             },
-            updateFCMToken: { token in
-                await service.updateFCMToken(token)
+            updateFCMToken: { token, userId in
+                await service.updateFCMToken(token, userId)
             },
-            scheduleLocalNotification: { title, body, date in
-                await service.scheduleLocalNotification(title: title, body: body, triggerDate: date)
+            scheduleLocalNotification: { title, body, date, userId in
+                await service.scheduleLocalNotification(title: title, body: body, triggerDate: date, userId: userId)
             },
             getNotificationStatus: {
                 await service.checkNotificationStatus()
@@ -302,8 +330,8 @@ extension NotificationService: DependencyKey {
             openNotificationSettings: {
                 service.openSettings()
             },
-            getTokenStatus: {
-                service.getTokens()
+            getTokenStatus: { userId in
+                service.getTokens(userId: userId)
             }
         )
     }
