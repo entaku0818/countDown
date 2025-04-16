@@ -16,6 +16,7 @@ import UserNotifications
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
     // MARK: - Dependencies
     @Dependency(\.notificationService) var notificationService
+    @Dependency(\.authClient) var authClient
     
     func application(_ application: UIApplication,
                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
@@ -54,13 +55,21 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         Messaging.messaging().apnsToken = deviceToken
         
         Task {
-            await notificationService.saveDeviceToken(deviceToken)
+            // ユーザーIDを取得
+            let userId = authClient.getCurrentUserId()
             
-            // Analyticsに成功を記録
-            await MainActor.run {
-                Analytics.logEvent("remote_notification_register_success", parameters: [
-                    "timestamp": Date().timeIntervalSince1970
-                ])
+            if !userId.isEmpty {
+                await notificationService.saveDeviceToken(deviceToken, userId)
+                
+                // Analyticsに成功を記録
+                await MainActor.run {
+                    Analytics.logEvent("remote_notification_register_success", parameters: [
+                        "userId": userId,
+                        "timestamp": Date().timeIntervalSince1970
+                    ])
+                }
+            } else {
+                print("ユーザーIDが空のため、デバイストークンを保存できません")
             }
         }
     }
@@ -94,12 +103,20 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         
         // トークンを保存
         Task {
-            await notificationService.updateFCMToken(token)
+            // ユーザーIDを取得
+            let userId = authClient.getCurrentUserId()
             
-            // Analyticsに記録
-            Analytics.logEvent("fcm_token_updated", parameters: [
-                "token_length": token.count
-            ])
+            if !userId.isEmpty {
+                await notificationService.updateFCMToken(token, userId)
+                
+                // Analyticsに記録
+                Analytics.logEvent("fcm_token_updated", parameters: [
+                    "token_length": token.count,
+                    "userId": userId
+                ])
+            } else {
+                print("ユーザーIDが空のため、FCMトークンを保存できません")
+            }
         }
     }
 

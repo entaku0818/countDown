@@ -183,8 +183,14 @@ struct CountdownFeature {
                         let title = "明日はイベントの日です"
                         let body = "\(event.title)まであと1日です"
                         
-                        await notificationService.scheduleLocalNotification(title, body, notificationDate)
-                        await send(.showAlert(.notificationScheduled))
+                        // ユーザーIDを取得
+                        let userId = authClient.getCurrentUserId()
+                        if !userId.isEmpty {
+                            await notificationService.scheduleLocalNotification(title, body, notificationDate, userId)
+                            await send(.showAlert(.notificationScheduled))
+                        } else {
+                            await send(.showAlert(.error("通知の設定に失敗しました：ユーザーIDが取得できません")))
+                        }
                     }
                 }
                 
