@@ -46,7 +46,7 @@ struct NotificationSettings: Equatable, Identifiable, Codable {
     /// すべての通知タイミング（メインの通知とカスタム通知）を取得
     var allTimings: [NotificationTiming] {
         var result = [timing]
-        if timing == .custom {
+        if case .custom = timing {
             result.append(contentsOf: customTimings)
         }
         return result.filter { $0 != .none }
@@ -141,6 +141,10 @@ enum NotificationTiming: Equatable, Codable, CaseIterable {
             components.hour = 9
             components.minute = 0
             return calendar.date(from: components)
+            
+        case .none:
+            // 通知なしの場合はnilを返す
+            return nil
         }
     }
 }

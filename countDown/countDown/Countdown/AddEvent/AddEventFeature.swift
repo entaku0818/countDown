@@ -26,8 +26,8 @@ struct AddEventFeature {
         case delegate(Delegate)
         
         // 通知設定関連のアクションを追加
-        case notificationSettings(PresentationAction<NotificationSettingsState.Action>)
-        
+        case notificationSettings(PresentationAction<NotificationSettingsReducer.Action>)
+
         enum Delegate: Equatable {
             case saveEvent(Event)
             case dismiss
