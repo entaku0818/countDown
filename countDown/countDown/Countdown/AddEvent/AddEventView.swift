@@ -17,25 +17,8 @@ struct AddEventView: View {
             }
             
             Section(header: Text("通知")) {
-                NavigationLink {
-                    NotificationSettingsView(
-                        event: store.event,
-                        notificationSettings: Binding(
-                            get: { store.notificationSettings?.notificationSettings ?? store.event.notificationSettings },
-                            set: { newValue in
-                                var updatedEvent = store.event
-                                updatedEvent.notificationSettings = newValue
-                                store.event = updatedEvent
-                            }
-                        )
-                    )
-                    .toolbar {
-                        ToolbarItem(placement: .confirmationAction) {
-                            Button("完了") {
-                                store.send(.notificationSettings(.presented(.saveButtonTapped)))
-                            }
-                        }
-                    }
+                Button {
+                    store.send(.editNotificationSettingsTapped)
                 } label: {
                     HStack {
                         Image(systemName: "bell.fill")
@@ -47,8 +30,13 @@ struct AddEventView: View {
                         
                         Text(store.event.notificationTimingText)
                             .foregroundColor(.secondary)
+                        
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundColor(.gray)
                     }
                 }
+                .foregroundColor(.primary)
             }
             
             Section(header: Text("カラー")) {
