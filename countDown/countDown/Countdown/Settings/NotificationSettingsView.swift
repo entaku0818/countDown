@@ -14,9 +14,7 @@ struct NotificationSettingsView: View {
         .dayBefore,
         .weekBefore,
         .monthBefore,
-        .sameDay,
-        .custom(days: 3),
-        .none
+        .sameDay
     ]
     
     // タイミングの表示名
@@ -45,25 +43,41 @@ struct NotificationSettingsView: View {
                         .pickerStyle(MenuPickerStyle())
                         .onChange(of: selectedTimingIndex) { newValue in
                             updatePrimaryNotificationSetting()
-                            
-                            // カスタム設定が選択された場合
-                            if case .custom = timingOptions[selectedTimingIndex] {
-                                showCustomTimingSheet = true
+                        }
+                        
+                        // カスタム通知を追加するボタン
+                        Button(action: {
+                            showCustomTimingSheet = true
+                        }) {
+                            HStack {
+                                Image(systemName: "plus.circle.fill")
+                                    .foregroundColor(.blue)
+                                Text("カスタム通知を追加")
+                                Spacer()
                             }
                         }
                         
-                        // カスタムタイミングが選択されている場合、詳細を表示
-                        if case .custom(let days) = getCurrentTiming() {
-                            HStack {
-                                Text("カスタム通知")
-                                Spacer()
-                                Text("\(days)日前")
-                                    .foregroundColor(.secondary)
-                            }
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                customDays = days
-                                showCustomTimingSheet = true
+                        // カスタム通知の一覧表示
+                        if let primarySetting = notificationSettings.first, 
+                           !primarySetting.customTimings.isEmpty {
+                            Section(header: Text("カスタム通知")) {
+                                ForEach(primarySetting.customTimings.indices, id: \.self) { index in
+                                    let customTiming = primarySetting.customTimings[index]
+                                    if case .custom(let days) = customTiming {
+                                        HStack {
+                                            Text("\(days)日前")
+                                            Spacer()
+                                            Button(action: {
+                                                var updatedSettings = notificationSettings
+                                                updatedSettings[0].customTimings.remove(at: index)
+                                                notificationSettings = updatedSettings
+                                            }) {
+                                                Image(systemName: "trash")
+                                                    .foregroundColor(.red)
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -152,24 +166,26 @@ struct NotificationSettingsView: View {
     private func updateCustomTiming(days: Int) {
         let customTiming: NotificationTiming = .custom(days: days)
         
-        // タイミングの配列内のカスタムタイミングのインデックスを探す
-        if let index = timingOptions.firstIndex(where: { 
-            if case .custom = $0 { return true } else { return false }
-        }) {
-            selectedTimingIndex = index
-        }
-        
         // 通知設定を更新
         if notificationSettings.isEmpty {
             let newSetting = NotificationSettings(
                 isEnabled: isEnabled,
-                timing: customTiming,
+                timing: getCurrentTiming(),
+                customTimings: [customTiming],
                 eventId: event.id
             )
             notificationSettings = [newSetting]
         } else {
             var updatedSettings = notificationSettings
-            updatedSettings[0].timing = customTiming
+            // カスタムタイミングを追加
+            if !updatedSettings[0].customTimings.contains(where: { 
+                if case .custom(let existingDays) = $0, existingDays == days { 
+                    return true 
+                } 
+                return false 
+            }) {
+                updatedSettings[0].customTimings.append(customTiming)
+            }
             notificationSettings = updatedSettings
         }
     }
@@ -235,12 +251,12 @@ struct CustomTimingSheet: View {
                         .foregroundColor(.secondary)
                 }
             }
-            .navigationTitle("カスタム通知設定")
+            .navigationTitle("カスタム通知の追加")
             .navigationBarItems(
                 leading: Button("キャンセル") {
                     dismiss()
                 },
-                trailing: Button("保存") {
+                trailing: Button("追加") {
                     onSave(days)
                     dismiss()
                 }

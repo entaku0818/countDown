@@ -143,7 +143,7 @@ enum NotificationTiming: Equatable, Codable, CaseIterable {
             return calendar.date(from: components)
             
         case .none:
-            // 通知なしの場合はnilを返す
+            // この行は実行されることはない（guardステートメントですでに処理されているため）
             return nil
         }
     }
