@@ -16,6 +16,41 @@ struct AddEventView: View {
                 )
             }
             
+            Section(header: Text("通知")) {
+                NavigationLink {
+                    NotificationSettingsView(
+                        event: store.event,
+                        notificationSettings: Binding(
+                            get: { store.notificationSettings?.notificationSettings ?? store.event.notificationSettings },
+                            set: { newValue in
+                                var updatedEvent = store.event
+                                updatedEvent.notificationSettings = newValue
+                                store.event = updatedEvent
+                            }
+                        )
+                    )
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("完了") {
+                                store.send(.notificationSettings(.presented(.saveButtonTapped)))
+                            }
+                        }
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "bell.fill")
+                            .foregroundColor(store.event.hasEnabledNotifications ? .blue : .gray)
+                        
+                        Text("通知設定")
+                        
+                        Spacer()
+                        
+                        Text(store.event.notificationTimingText)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            
             Section(header: Text("カラー")) {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 15) {
@@ -55,6 +90,35 @@ struct AddEventView: View {
                 }
             }
         }
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("キャンセル") {
+                    store.send(.cancelButtonTapped)
+                }
+            }
+            ToolbarItem(placement: .confirmationAction) {
+                Button("保存") {
+                    store.send(.saveButtonTapped)
+                }
+            }
+        }
+        .sheet(store: store.scope(state: \.$notificationSettings, action: { .notificationSettings($0) })) { store in
+            NavigationView {
+                NotificationSettingsSheetView(store: store)
+            }
+        }
+    }
+}
+
+struct NotificationSettingsSheetView: View {
+    @Bindable var store: StoreOf<NotificationSettingsReducer>
+    
+    var body: some View {
+        NotificationSettingsView(
+            event: store.event,
+            notificationSettings: $store.notificationSettings
+        )
+        .navigationTitle("通知設定")
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("キャンセル") {

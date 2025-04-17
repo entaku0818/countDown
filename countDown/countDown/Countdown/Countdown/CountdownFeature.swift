@@ -177,20 +177,19 @@ struct CountdownFeature {
                 
             case let .scheduleNotification(event):
                 return .run { send in
-                    // イベント前日の通知を設定
-                    let calendar = Calendar.current
-                    if let notificationDate = calendar.date(byAdding: .day, value: -1, to: event.date) {
-                        let title = "明日はイベントの日です"
-                        let body = "\(event.title)まであと1日です"
+                    // ユーザーIDを取得
+                    let userId = authClient.getCurrentUserId()
+                    if userId.isEmpty {
+                        await send(.showAlert(.error("通知の設定に失敗しました：ユーザーIDが取得できません")))
+                        return
+                    }
                         
-                        // ユーザーIDを取得
-                        let userId = authClient.getCurrentUserId()
-                        if !userId.isEmpty {
-                            await notificationService.scheduleLocalNotification(title, body, notificationDate, userId)
-                            await send(.showAlert(.notificationScheduled))
-                        } else {
-                            await send(.showAlert(.error("通知の設定に失敗しました：ユーザーIDが取得できません")))
-                        }
+                    // 新しい通知APIを使用
+                    let success = await notificationService.scheduleEventNotifications(event, userId)
+                    if success {
+                        await send(.showAlert(.notificationScheduled))
+                    } else {
+                        await send(.showAlert(.error("通知のスケジュールに失敗しました")))
                     }
                 }
                 
@@ -262,11 +261,20 @@ struct CountdownFeature {
                     // イベントを保存（共有情報なし）
                     await eventStorage.saveEvent(event, nil)
                     await send(.updateFilteredEvents)
-                    await send(.scheduleNotification(event))
+                    
+                    // 通知設定が有効な場合、通知をスケジュール
+                    if event.hasEnabledNotifications {
+                        await send(.scheduleNotification(event))
+                    }
                 }
                 
             case let .editEvent(.presented(.delegate(.saveEvent(event)))):
                 if let index = state.events.firstIndex(where: { $0.id == event.id }) {
+                    // 通知設定の変更があったかをチェック
+                    let oldEvent = state.events[index]
+                    let notificationsChanged = oldEvent.notificationSettings != event.notificationSettings
+                    
+                    // イベントを更新
                     state.events[index] = event
                 }
                 state.editEvent = nil
@@ -274,6 +282,18 @@ struct CountdownFeature {
                     // 既存の共有情報は維持したまま更新
                     await eventStorage.updateEvent(event, nil)
                     await send(.updateFilteredEvents)
+                    
+                    // 通知設定が変更されていれば通知をスケジュールし直す
+                    let userId = authClient.getCurrentUserId()
+                    if !userId.isEmpty && event.hasEnabledNotifications {
+                        let success = await notificationService.updateEventNotifications(event, userId)
+                        if !success {
+                            await send(.showAlert(.error("通知の更新に失敗しました")))
+                        }
+                    } else if !userId.isEmpty {
+                        // 通知が無効になっていれば通知をキャンセル
+                        await notificationService.cancelEventNotifications(event.id, userId)
+                    }
                 }
                 
             case .addEvent(.presented(.delegate(.dismiss))):
