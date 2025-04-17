@@ -15,6 +15,11 @@ struct NotificationService {
     var getNotificationStatus: @Sendable () async -> NotificationAuthorizationStatus
     var openNotificationSettings: @Sendable () -> Void
     var getTokenStatus: @Sendable (String) -> TokenStatus
+    
+    // 通知設定関連の新機能
+    var scheduleEventNotifications: @Sendable (Event, String) async -> Bool
+    var cancelEventNotifications: @Sendable (UUID, String) async -> Bool
+    var updateEventNotifications: @Sendable (Event, String) async -> Bool
 }
 
 // MARK: - Notification Models
@@ -301,6 +306,91 @@ class NotificationServiceLive: NSObject, MessagingDelegate {
             }
         }
     }
+    
+    // イベントの通知をスケジュールする
+    func scheduleEventNotifications(event: Event, userId: String) async -> Bool {
+        guard !userId.isEmpty else {
+            print("ユーザーIDが空のため、通知をスケジュールできません")
+            return false
+        }
+        
+        // まず既存の通知をキャンセル
+        await cancelEventNotifications(eventId: event.id, userId: userId)
+        
+        var success = true
+        let enabledSettings = event.notificationSettings.filter { $0.isEnabled }
+        
+        // 有効な通知設定がなければ終了
+        if enabledSettings.isEmpty {
+            return true
+        }
+        
+        // 各通知設定について処理
+        for setting in enabledSettings {
+            for timing in setting.allTimings {
+                if let notificationDate = timing.notificationDate(for: event.date) {
+                    // 過去の日付の場合はスキップ
+                    if notificationDate < Date() {
+                        continue
+                    }
+                    
+                    // 通知タイトルと本文を設定
+                    let title = "イベント通知"
+                    let body = "\(event.title)まで\(timing.description)です"
+                    
+                    do {
+                        // 通知をスケジュール
+                        await scheduleLocalNotification(title: title, body: body, triggerDate: notificationDate, userId: userId)
+                    } catch {
+                        print("通知のスケジュールに失敗しました: \(error)")
+                        success = false
+                    }
+                }
+            }
+        }
+        
+        return success
+    }
+    
+    // イベントの通知をキャンセル
+    func cancelEventNotifications(eventId: UUID, userId: String) async -> Bool {
+        guard !userId.isEmpty else {
+            print("ユーザーIDが空のため、通知をキャンセルできません")
+            return false
+        }
+        
+        let center = UNUserNotificationCenter.current()
+        let pendingRequests = await center.pendingNotificationRequests()
+        
+        // イベントIDを含む通知IDをフィルタリング
+        let eventNotificationIds = pendingRequests
+            .filter { $0.identifier.contains("notification_\(userId)") && $0.identifier.contains(eventId.uuidString) }
+            .map { $0.identifier }
+        
+        if !eventNotificationIds.isEmpty {
+            await center.removePendingNotificationRequests(withIdentifiers: eventNotificationIds)
+            print("\(eventNotificationIds.count)件の通知をキャンセルしました（イベントID: \(eventId)）")
+        }
+        
+        return true
+    }
+    
+    // イベントの通知を更新（既存の通知をキャンセルして再スケジュール）
+    func updateEventNotifications(event: Event, userId: String) async -> Bool {
+        guard !userId.isEmpty else {
+            print("ユーザーIDが空のため、通知を更新できません")
+            return false
+        }
+        
+        // 既存の通知をキャンセル
+        let cancelSuccess = await cancelEventNotifications(eventId: event.id, userId: userId)
+        if !cancelSuccess {
+            return false
+        }
+        
+        // 新しい通知をスケジュール
+        return await scheduleEventNotifications(event: event, userId: userId)
+    }
 }
 
 extension NotificationService: DependencyKey {
@@ -332,6 +422,16 @@ extension NotificationService: DependencyKey {
             },
             getTokenStatus: { userId in
                 service.getTokens(userId: userId)
+            },
+            // 新しい機能を追加
+            scheduleEventNotifications: { event, userId in
+                await service.scheduleEventNotifications(event: event, userId: userId)
+            },
+            cancelEventNotifications: { eventId, userId in
+                await service.cancelEventNotifications(eventId: eventId, userId: userId)
+            },
+            updateEventNotifications: { event, userId in
+                await service.updateEventNotifications(event: event, userId: userId)
             }
         )
     }
