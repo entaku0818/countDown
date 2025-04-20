@@ -12,6 +12,7 @@ import FirebaseAnalytics
 import FirebaseFirestore
 import FirebaseMessaging
 import UserNotifications
+import GoogleMobileAds
 
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
     // MARK: - Dependencies
@@ -23,6 +24,9 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         // Firebaseの設定
         FirebaseApp.configure()
         
+        // Google AdMobの初期化
+        MobileAds.shared.start(completionHandler: nil)
+
         // テストイベントを送信
         Analytics.logEvent("app_launched", parameters: [
             "timestamp": Date().timeIntervalSince1970,

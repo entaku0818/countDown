@@ -3,6 +3,7 @@ import ComposableArchitecture
 
 struct CountdownView: View {
     @Bindable var store: StoreOf<CountdownFeature>
+    @State private var interstitialRef = InterstitialAdView()
     
     var body: some View {
         NavigationStack {
@@ -17,45 +18,51 @@ struct CountdownView: View {
                         .shadow(radius: 10)
                 }
                 
-                List {
-                    Section {
-                        Picker("並び替え", selection: $store.sortOrder) {
-                            Text("日付順").tag(CountdownFeature.State.SortOrder.date)
-                            Text("残り日数順").tag(CountdownFeature.State.SortOrder.daysRemaining)
-                        }
-                        .pickerStyle(.segmented)
-                    }
-
-                    Section {
-                        ForEach(store.filteredEvents) { event in
-                            NavigationLink {
-                                EventDetailView(event: event)
-                            } label: {
-                                EventRow(event: event)
+                VStack(spacing: 0) {
+                    List {
+                        Section {
+                            Picker("並び替え", selection: $store.sortOrder) {
+                                Text("日付順").tag(CountdownFeature.State.SortOrder.date)
+                                Text("残り日数順").tag(CountdownFeature.State.SortOrder.daysRemaining)
                             }
-                            .swipeActions {
-                                Button {
-                                    store.send(.eventTapped(event))
-                                } label: {
-                                    Label("編集", systemImage: "pencil")
-                                }
-                                .tint(.blue)
+                            .pickerStyle(.segmented)
+                        }
 
-                                Button(role: .destructive) {
-                                    if let index = store.events.firstIndex(where: { $0.id == event.id }) {
-                                        store.send(.deleteEvent(IndexSet(integer: index)))
+                        Section {
+                            ForEach(store.filteredEvents) { event in
+                                NavigationLink {
+                                    EventDetailView(event: event)
+                                } label: {
+                                    EventRow(event: event)
+                                }
+                                .swipeActions {
+                                    Button {
+                                        store.send(.eventTapped(event))
+                                    } label: {
+                                        Label("編集", systemImage: "pencil")
                                     }
-                                } label: {
-                                    Label("削除", systemImage: "trash")
+                                    .tint(.blue)
+
+                                    Button(role: .destructive) {
+                                        if let index = store.events.firstIndex(where: { $0.id == event.id }) {
+                                            store.send(.deleteEvent(IndexSet(integer: index)))
+                                        }
+                                    } label: {
+                                        Label("削除", systemImage: "trash")
+                                    }
                                 }
                             }
                         }
                     }
+                    .searchable(
+                        text: $store.searchText,
+                        prompt: "イベントを検索"
+                    )
+                    
+                    // バナー広告の表示
+                    AdmobBannerView()
+                        .frame(height: 50)
                 }
-                .searchable(
-                    text: $store.searchText,
-                    prompt: "イベントを検索"
-                )
                 .navigationTitle("カウントダウン")
                 .toolbar {
                     ToolbarItem(placement: .navigationBarLeading) {
@@ -90,6 +97,21 @@ struct CountdownView: View {
                     store.send(.onAppear)
                 }
                 .alert(store: store.scope(state: \.$alert, action: \.alert ))
+                
+                // インタースティシャル広告View（表示されない）
+                interstitialRef
+                    .onChange(of: store.shouldShowLaunchAd) { _, shouldShow in
+                        if shouldShow {
+                            interstitialRef.triggerAd()
+                            store.shouldShowLaunchAd = false
+                        }
+                    }
+                    .onChange(of: store.shouldShowEventAddedAd) { _, shouldShow in
+                        if shouldShow {
+                            interstitialRef.triggerAd()
+                            store.shouldShowEventAddedAd = false
+                        }
+                    }
             }
         }
     }
