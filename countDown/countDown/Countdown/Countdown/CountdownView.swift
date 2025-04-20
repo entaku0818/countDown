@@ -3,7 +3,6 @@ import ComposableArchitecture
 
 struct CountdownView: View {
     @Bindable var store: StoreOf<CountdownFeature>
-    @State private var interstitialRef = InterstitialAdView()
     
     var body: some View {
         NavigationStack {
@@ -97,21 +96,6 @@ struct CountdownView: View {
                     store.send(.onAppear)
                 }
                 .alert(store: store.scope(state: \.$alert, action: \.alert ))
-                
-                // インタースティシャル広告View（表示されない）
-                interstitialRef
-                    .onChange(of: store.shouldShowLaunchAd) { _, shouldShow in
-                        if shouldShow {
-                            interstitialRef.triggerAd()
-                            store.shouldShowLaunchAd = false
-                        }
-                    }
-                    .onChange(of: store.shouldShowEventAddedAd) { _, shouldShow in
-                        if shouldShow {
-                            interstitialRef.triggerAd()
-                            store.shouldShowEventAddedAd = false
-                        }
-                    }
             }
         }
     }

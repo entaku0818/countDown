@@ -80,8 +80,6 @@ struct CountdownFeature {
                 // 既存のユーザーがいるか確認
                 if let currentUser = authClient.getCurrentUser() {
                     state.user = currentUser
-                    // アプリ起動時は広告を表示
-                    state.shouldShowLaunchAd = true
                     return .run { send in
                         // ローカルとFirestoreのイベントを取得
                         let events = await eventStorage.loadEvents()
@@ -107,8 +105,6 @@ struct CountdownFeature {
             case let .signInResponse(.success(user)):
                 state.user = user
                 state.isSigningIn = false
-                // アプリ起動時は広告を表示
-                state.shouldShowLaunchAd = true
                 return .run { send in
                     // ローカルとFirestoreのイベントを取得
                     let events = await eventStorage.loadEvents()
@@ -264,8 +260,6 @@ struct CountdownFeature {
             case let .addEvent(.presented(.delegate(.saveEvent(event)))):
                 state.events.append(event)
                 state.addEvent = nil
-                // イベント追加時は広告を表示
-                state.shouldShowEventAddedAd = true
                 return .run { send in
                     // イベントを保存（共有情報なし）
                     await eventStorage.saveEvent(event, nil)
