@@ -25,8 +25,14 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         FirebaseApp.configure()
         
         // Google AdMobの初期化
-        MobileAds.shared.start(completionHandler: nil)
-
+        print("AppDelegate: AdMobの初期化を開始")
+        MobileAds.shared.start { status in
+            print("AppDelegate: AdMobの初期化完了 - ステータス: \(status)")
+            
+            // テスト広告の設定情報を表示
+            print("AppDelegate: テスト広告ID: ca-app-pub-3940256099942544~1458002511")
+        }
+        
         // テストイベントを送信
         Analytics.logEvent("app_launched", parameters: [
             "timestamp": Date().timeIntervalSince1970,
