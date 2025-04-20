@@ -1,0 +1,27 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# CountDown アプリ プロジェクトルール
+
+## 広告実装について
+- インターステイシャル広告は実装しない（削除済み）
+- バナー広告（AdmobBannerView）のみ表示
+- App Open Ads は Issue #14 で実装予定
+
+## コードスタイル
+- SwiftUI を使用したView実装
+- TCA (The Composable Architecture) を使用した状態管理
+- Feature ファイルと View ファイルを分離
+
+## 広告関連の実装ベストプラクティス
+- 広告IDはInfo.plistで管理
+- テスト用広告IDを開発中は使用: ca-app-pub-3940256099942544/9257395921
+- ユーザー体験を最優先し、広告は適切なタイミングで表示
+
+## GitHub連携
+- 機能実装はIssueで管理
+- コミットメッセージは日本語で記述し、関連するIssue番号を含める（例: `インターステイシャル広告を削除 #7`）
+- ghコマンドでIssue作成可能 
