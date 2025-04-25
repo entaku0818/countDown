@@ -13,6 +13,7 @@ struct AddEventFeature {
     struct State: Equatable {
         var event: Event
         var mode: Mode = .add
+        var isEventTitleEmpty: Bool = false
         
         // 通知設定の編集状態を追加
         @Presents var notificationSettings: NotificationSettingsState?
@@ -39,11 +40,26 @@ struct AddEventFeature {
         
         Reduce { state, action in
             switch action {
+            case .binding(\.$event.title):
+                // タイトルが変更されたら、エラー状態をリセット
+                state.isEventTitleEmpty = false
+                return .none
+                
             case .binding:
                 return .none
                 
             case .saveButtonTapped:
-                return .send(.delegate(.saveEvent(state.event)))
+                // タイトルが空または空白文字のみの場合は保存しない
+                if state.event.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    state.isEventTitleEmpty = true
+                    return .none
+                }
+                
+                // 空白を含むタイトルをトリミング
+                var eventToSave = state.event
+                eventToSave.title = state.event.title.trimmingCharacters(in: .whitespacesAndNewlines)
+                
+                return .send(.delegate(.saveEvent(eventToSave)))
                 
             case .cancelButtonTapped:
                 return .send(.delegate(.dismiss))

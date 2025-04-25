@@ -7,7 +7,6 @@ struct CountdownView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // サインイン中のローディングオーバーレイ
                 if store.isSigningIn {
                     Color.black.opacity(0.1)
                         .ignoresSafeArea()

@@ -8,6 +8,19 @@ struct AddEventView: View {
         Form {
             Section(header: Text("イベント情報")) {
                 TextField("イベント名", text: $store.event.title)
+                    .overlay(alignment: .trailing) {
+                        if store.isEventTitleEmpty {
+                            Image(systemName: "exclamationmark.circle")
+                                .foregroundColor(.red)
+                                .padding(.trailing, 8)
+                        }
+                    }
+                
+                if store.isEventTitleEmpty {
+                    Text("イベント名を入力してください")
+                        .font(.caption)
+                        .foregroundColor(.red)
+                }
                 
                 DatePicker(
                     "日付",
@@ -88,6 +101,7 @@ struct AddEventView: View {
                 Button("保存") {
                     store.send(.saveButtonTapped)
                 }
+                .disabled(store.event.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
         }
         .sheet(store: store.scope(state: \.$notificationSettings, action: { .notificationSettings($0) })) { store in
