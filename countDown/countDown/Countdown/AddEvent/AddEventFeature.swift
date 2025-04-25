@@ -40,10 +40,6 @@ struct AddEventFeature {
         
         Reduce { state, action in
             switch action {
-            case .binding(\.$event.title):
-                // タイトルが変更されたら、エラー状態をリセット
-                state.isEventTitleEmpty = false
-                return .none
                 
             case .binding:
                 return .none
