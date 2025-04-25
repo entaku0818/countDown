@@ -7,19 +7,66 @@ struct AddEventView: View {
     var body: some View {
         Form {
             Section(header: Text("イベント情報")) {
-                TextField("イベント名", text: $store.event.title)
-                    .overlay(alignment: .trailing) {
-                        if store.isEventTitleEmpty {
-                            Image(systemName: "exclamationmark.circle")
-                                .foregroundColor(.red)
-                                .padding(.trailing, 8)
+                HStack {
+                    TextField("イベント名", text: $store.event.title)
+                        .overlay(alignment: .trailing) {
+                            if store.isEventTitleEmpty {
+                                Image(systemName: "exclamationmark.circle")
+                                    .foregroundColor(.red)
+                                    .padding(.trailing, 8)
+                            }
                         }
+                    
+                    Button(action: {
+                        store.send(.toggleSuggestions)
+                    }) {
+                        Image(systemName: "text.magnifyingglass")
+                            .foregroundColor(.blue)
                     }
+                    .buttonStyle(BorderlessButtonStyle())
+                }
                 
                 if store.isEventTitleEmpty {
                     Text("イベント名を入力してください")
                         .font(.caption)
                         .foregroundColor(.red)
+                }
+                
+                if store.showingSuggestions {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("候補")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .padding(.top, 4)
+                        
+                        ForEach(AddEventFeature.eventSuggestions, id: \.category) { category in
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text(category.category)
+                                    .font(.footnote.bold())
+                                    .foregroundColor(.secondary)
+                                
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 8) {
+                                        ForEach(category.suggestions, id: \.self) { suggestion in
+                                            Button(action: {
+                                                store.send(.selectSuggestion(suggestion))
+                                            }) {
+                                                Text(suggestion)
+                                                    .font(.subheadline)
+                                                    .padding(.vertical, 6)
+                                                    .padding(.horizontal, 12)
+                                                    .background(Color.blue.opacity(0.1))
+                                                    .foregroundColor(.primary)
+                                                    .cornerRadius(16)
+                                            }
+                                            .buttonStyle(BorderlessButtonStyle())
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .padding(.vertical, 4)
                 }
                 
                 DatePicker(
