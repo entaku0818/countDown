@@ -121,4 +121,104 @@ exports.sendEventNotifications = functions.pubsub.schedule("every 1 hours").onRu
   }
   
   return null;
+});
+
+// テスト用端末に通知を送信するテスト関数
+exports.sendTestNotification = functions.https.onRequest(async (req, res) => {
+  try {
+    // CORSヘッダーの設定
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "GET, POST");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+    
+    // OPTIONSリクエスト（プリフライト）への対応
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
+      return;
+    }
+    
+    if (req.method !== "POST") {
+      res.status(405).send("Method Not Allowed");
+      return;
+    }
+    
+    // リクエストボディからデータを取得
+    const { fcmToken, title, body, eventId, eventTitle, daysRemaining } = req.body;
+    
+    if (!fcmToken) {
+      res.status(400).json({ 
+        success: false, 
+        error: "FCMトークンが必要です" 
+      });
+      return;
+    }
+    
+    // 通知メッセージのデフォルト値を設定
+    const notificationTitle = title || "テスト通知";
+    const notificationBody = body || "これはテスト通知です";
+    const eventData = {
+      id: eventId || "test-event-id",
+      title: eventTitle || "テストイベント",
+      daysRemaining: daysRemaining || 7
+    };
+    
+    // メッセージを構成
+    const message = {
+      token: fcmToken,
+      notification: {
+        title: notificationTitle,
+        body: notificationBody,
+      },
+      data: {
+        eventId: eventData.id,
+        eventTitle: eventData.title,
+        daysRemaining: eventData.daysRemaining.toString(),
+        isTest: "true"
+      },
+      // 通知の優先度設定
+      android: {
+        priority: "high",
+      },
+      apns: {
+        payload: {
+          aps: {
+            contentAvailable: true,
+            sound: "default",
+          }
+        }
+      }
+    };
+    
+    // FCMで通知を送信
+    const response = await admin.messaging().send(message);
+    console.log(`テスト通知を送信しました: ${response}`);
+    
+    // 送信履歴を保存
+    await admin.firestore()
+      .collection("notificationHistory")
+      .add({
+        eventId: eventData.id,
+        eventTitle: eventData.title,
+        fcmToken: fcmToken,
+        sentAt: admin.firestore.Timestamp.now(),
+        status: "sent",
+        isTest: true
+      });
+    
+    // 成功レスポンスを返す
+    res.status(200).json({
+      success: true,
+      messageId: response,
+      message: "テスト通知が送信されました"
+    });
+    
+  } catch (error) {
+    console.error(`テスト通知送信エラー: ${error}`);
+    
+    // エラーレスポンスを返す
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
 }); 

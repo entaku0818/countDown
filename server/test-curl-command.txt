@@ -1,0 +1,24 @@
+# テスト通知用curlコマンドサンプル
+# FCMトークンを実際のテスト端末のトークンに置き換えてください
+
+# 基本的なテスト通知
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"fcmToken":"FCM_TOKEN_HERE","title":"テスト通知","body":"これはテスト通知です"}' \
+  https://us-central1-countdown-336cf.cloudfunctions.net/sendTestNotification
+
+# イベントタイトルと残り日数を指定したテスト通知
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"fcmToken":"FCM_TOKEN_HERE","title":"イベント通知","body":"イベントが近づいています！","eventTitle":"重要な会議","daysRemaining":3}' \
+  https://us-central1-countdown-336cf.cloudfunctions.net/sendTestNotification
+
+# ====================================================================================
+# FCMトークンの取得方法：
+# 1. アプリのログで「FCM TOKEN」や「FCM registration token」を検索
+# 2. Firebaseコンソールの「Cloud Messaging」タブで「App」セクションを確認
+# 3. アプリに特別なトークン表示画面を実装して表示
+# ====================================================================================
+
+# 注意：このテスト機能を使用するには、Firebase CloudFunctionsがデプロイされている必要があります
+# Firebase Blazeプラン（従量課金制）へのアップグレードが必要です 
