@@ -2,7 +2,7 @@
   "name": "countdown-notification-functions",
   "description": "CountDownアプリの通知機能用Cloud Functions",
   "scripts": {
-    "lint": "eslint .",
+    "lint": "eslint . --fix",
     "serve": "firebase emulators:start --only functions",
     "shell": "firebase functions:shell",
     "start": "npm run shell",
