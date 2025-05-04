@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ユーザーデータへのアクセスルール
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // イベントデータへのアクセスルール
+    match /events/{eventId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    
+    // 通知履歴へのアクセスルール
+    match /notificationHistory/{notificationId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      // 書き込みはCloud Functionsからのみ許可
+      allow write: if false;
+    }
+  }
+} 
