@@ -9,21 +9,21 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.entaku.countDown</string>
+	<string>com.entaku.CountDownTimer</string>
 	<key>PROJECT_ID</key>
 	<string>countdown-336cf</string>
 	<key>STORAGE_BUCKET</key>
 	<string>countdown-336cf.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
-	<false></false>
+	<false/>
 	<key>IS_ANALYTICS_ENABLED</key>
-	<false></false>
+	<false/>
 	<key>IS_APPINVITE_ENABLED</key>
-	<true></true>
+	<true/>
 	<key>IS_GCM_ENABLED</key>
-	<true></true>
+	<true/>
 	<key>IS_SIGNIN_ENABLED</key>
-	<true></true>
+	<true/>
 	<key>GOOGLE_APP_ID</key>
 	<string>1:578145358319:ios:e411f2d43bbf4a403e261a</string>
 </dict>
