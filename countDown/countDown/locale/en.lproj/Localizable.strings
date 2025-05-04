@@ -1,0 +1,8 @@
+/* 
+  Localizable.strings
+  countDown
+
+  Created by 遠藤拓弥 on 2025/05/04.
+  
+*/
+CFBundleDisplayName = "Countdown Reminder";
