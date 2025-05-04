@@ -9,10 +9,32 @@ struct AddEventFeature {
         case edit
     }
     
+    // イベント候補のリスト
+    static let eventSuggestions: [EventSuggestion] = [
+        EventSuggestion(
+            category: "イベント",
+            suggestions: ["誕生日", "結婚式", "記念日", "卒業式", "入学式"]
+        ),
+        EventSuggestion(
+            category: "祝日・季節",
+            suggestions: ["クリスマス", "お正月", "バレンタイン", "ハロウィン", "お花見"]
+        ),
+        EventSuggestion(
+            category: "旅行",
+            suggestions: ["旅行", "海外旅行", "国内旅行", "出張", "帰省"]
+        ),
+        EventSuggestion(
+            category: "仕事",
+            suggestions: ["締め切り", "プロジェクト完了", "会議", "面接", "発表"]
+        )
+    ]
+    
     @ObservableState
     struct State: Equatable {
         var event: Event
         var mode: Mode = .add
+        var showingSuggestions: Bool = false
+        var isEventTitleEmpty: Bool = true
         
         // 通知設定の編集状態を追加
         @Presents var notificationSettings: NotificationSettingsState?
@@ -47,7 +69,6 @@ struct AddEventFeature {
             case .saveButtonTapped:
                 // タイトルが空または空白文字のみの場合は保存しない
                 if state.event.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    state.isEventTitleEmpty = true
                     return .none
                 }
                 
