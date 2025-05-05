@@ -149,22 +149,7 @@ struct SettingsView: View {
                     }
                 }
             }
-            
-            Section {
-                Button(action: {
-                    // アプリ情報ダイアログを表示
-                }) {
-                    Text("アプリについて")
-                        .foregroundColor(.primary)
-                }
-                
-                Button(action: {
-                    // アプリの評価画面を表示
-                }) {
-                    Text("アプリを評価する")
-                        .foregroundColor(.primary)
-                }
-            }
+
         }
         .navigationTitle("設定")
         .onAppear {
