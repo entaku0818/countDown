@@ -130,11 +130,8 @@ struct CountdownFeature {
                         ButtonState(role: .cancel) {
                             TextState("OK")
                         }
-                        ButtonState {
-                            TextState("プレミアム版にアップグレード")
-                        }
                     } message: {
-                        TextState("無料版では最大3つのイベントしか登録できません。プレミアム版にアップグレードすると、無制限にイベントを登録できます。")
+                        TextState("無料版では最大3つのイベントしか登録できません。後日、プレミアム版にアップグレードできるようになります。")
                     }
                     return .none
                 }
@@ -237,11 +234,8 @@ struct CountdownFeature {
                         ButtonState(role: .cancel) {
                             TextState("OK")
                         }
-                        ButtonState {
-                            TextState("プレミアム版にアップグレード")
-                        }
                     } message: {
-                        TextState("無料版では最大3つのイベントしか登録できません。プレミアム版にアップグレードすると、無制限にイベントを登録できます。")
+                        TextState("無料版では最大3つのイベントしか登録できません。後日、プレミアム版にアップグレードできるようになります。")
                     }
                 }
                 return .none
