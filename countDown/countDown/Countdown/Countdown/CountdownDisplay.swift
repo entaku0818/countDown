@@ -30,6 +30,12 @@ struct DaysCountdownView: View {
             Text(countdownLabel)
                 .font(.caption)
                 .foregroundColor(.secondary)
+                
+            if event.isWithinSevenDays && !event.isPast && !event.isToday {
+                Text("\(event.hoursRemaining % 24)時間 \(event.minutesRemaining % 60)分")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
         }
     }
     
@@ -76,6 +82,12 @@ struct ProgressCountdownView: View {
             Text(countdownText)
                 .font(.caption)
                 .foregroundColor(.secondary)
+                
+            if event.isWithinSevenDays && !event.isPast && !event.isToday {
+                Text("\(event.hoursRemaining)時間 \(event.minutesRemaining)分")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
         }
         .frame(width: 100)
     }
@@ -105,20 +117,31 @@ struct CircleCountdownView: View {
     var event: Event
     
     var body: some View {
-        ZStack {
-            Circle()
-                .stroke(Color.secondary.opacity(0.2), lineWidth: 4)
-                .frame(width: 50, height: 50)
+        VStack {
+            ZStack {
+                Circle()
+                    .stroke(Color.secondary.opacity(0.2), lineWidth: 4)
+                    .frame(width: 50, height: 50)
+                
+                Circle()
+                    .trim(from: 0, to: progressValue)
+                    .stroke(Color(stringValue: event.color), style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                    .frame(width: 50, height: 50)
+                    .rotationEffect(.degrees(-90))
+                
+                Text(countdownText)
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(Color(stringValue: event.color))
+            }
             
-            Circle()
-                .trim(from: 0, to: progressValue)
-                .stroke(Color(stringValue: event.color), style: StrokeStyle(lineWidth: 4, lineCap: .round))
-                .frame(width: 50, height: 50)
-                .rotationEffect(.degrees(-90))
-            
-            Text(countdownText)
-                .font(.system(size: 12, weight: .bold))
-                .foregroundColor(Color(stringValue: event.color))
+            if event.isWithinSevenDays && !event.isPast && !event.isToday {
+                Text("\(event.hoursRemaining)時間")
+                    .font(.system(size: 9))
+                    .foregroundColor(.secondary)
+                Text("\(event.minutesRemaining)分")
+                    .font(.system(size: 9))
+                    .foregroundColor(.secondary)
+            }
         }
     }
     
