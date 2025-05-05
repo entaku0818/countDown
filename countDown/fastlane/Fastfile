@@ -40,19 +40,6 @@ platform :ios do
     
     UI.success("Xcodeプロジェクトからバージョン番号を取得しました: #{version_number}")
     
-    # 証明書とプロビジョニングプロファイルの自動管理
-    match(
-      type: "appstore",
-      readonly: true
-    )
-    
-    # アプリをビルドしてApp Storeにアップロード
-    build_app(
-      scheme: "countDown",
-      export_method: "app-store",
-      xcargs: "-allowProvisioningUpdates",
-      output_directory: "build"
-    )
 
     # App Storeへのアップロードとメタデータの更新
     deliver(
