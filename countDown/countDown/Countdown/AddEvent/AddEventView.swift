@@ -9,13 +9,6 @@ struct AddEventView: View {
             Section(header: Text("イベント情報")) {
                 HStack {
                     TextField("イベント名", text: $store.event.title)
-                        .overlay(alignment: .trailing) {
-                            if store.isEventTitleEmpty {
-                                Image(systemName: "exclamationmark.circle")
-                                    .foregroundColor(.red)
-                                    .padding(.trailing, 8)
-                            }
-                        }
                     
                     Button(action: {
                         store.send(.toggleSuggestions)
@@ -24,12 +17,6 @@ struct AddEventView: View {
                             .foregroundColor(.blue)
                     }
                     .buttonStyle(BorderlessButtonStyle())
-                }
-                
-                if store.isEventTitleEmpty {
-                    Text("イベント名を入力してください")
-                        .font(.caption)
-                        .foregroundColor(.red)
                 }
                 
                 if store.showingSuggestions {
