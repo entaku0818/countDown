@@ -9,6 +9,7 @@ struct CountdownFeature {
     struct State: Equatable {
         var events: [Event] = []
         var sharedEvents: [Event] = []
+        var filteredEvents: [Event] = []
         var user: User? = nil
         var isSigningIn: Bool = false
         var shouldShowLaunchAd: Bool = false
@@ -36,6 +37,7 @@ struct CountdownFeature {
         case showAlert(Alert)
         case addEvent(PresentationAction<AddEventFeature.Action>)
         case editEvent(PresentationAction<AddEventFeature.Action>)
+        case updateFilteredEvents
         case alert(PresentationAction<Alert>)
         
         enum Alert: Equatable {
@@ -57,6 +59,10 @@ struct CountdownFeature {
         Reduce { state, action in
             switch action {
             case .binding:
+                return .send(.updateFilteredEvents)
+                
+            case .updateFilteredEvents:
+                state.filteredEvents = sortedEvents(state.events)
                 return .none
                 
             case .onAppear:
@@ -105,7 +111,7 @@ struct CountdownFeature {
                 
             case let .eventsLoaded(events):
                 state.events = events
-                return .none
+                return .send(.updateFilteredEvents)
                 
             case let .sharedEventsLoaded(events):
                 state.sharedEvents = events
@@ -142,6 +148,7 @@ struct CountdownFeature {
                     for event in eventsToDelete {
                         await eventStorage.deleteEvent(event.id)
                     }
+                    await send(.updateFilteredEvents)
                 }
                 
             case let .eventTapped(event):
@@ -250,6 +257,8 @@ struct CountdownFeature {
                     if event.hasEnabledNotifications {
                         await send(.scheduleNotification(event))
                     }
+                    
+                    await send(.updateFilteredEvents)
                 }
                 
             case let .editEvent(.presented(.delegate(.saveEvent(event)))):
@@ -277,6 +286,8 @@ struct CountdownFeature {
                         // 通知が無効になっていれば通知をキャンセル
                         await notificationService.cancelEventNotifications(event.id, userId)
                     }
+                    
+                    await send(.updateFilteredEvents)
                 }
                 
             case .addEvent(.presented(.delegate(.dismiss))):
@@ -311,6 +322,12 @@ struct CountdownFeature {
         }
         .ifLet(\.$editEvent, action: \.editEvent) {
             AddEventFeature()
+        }
+    }
+    
+    private func sortedEvents(_ events: [Event]) -> [Event] {
+        return events.sorted { event1, event2 in
+            return event1.date < event2.date  // 古い日付が先
         }
     }
 } 
