@@ -207,5 +207,7 @@
 	<array>
 		<string>remote-notification</string>
 	</array>
+	<key>ADMOB_BANNER_ID</key>
+	<string>$(ADMOB_BANNER_ID)</string>
 </dict>
 </plist>

@@ -28,9 +28,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         print("AppDelegate: AdMobの初期化を開始")
         MobileAds.shared.start { status in
             print("AppDelegate: AdMobの初期化完了 - ステータス: \(status)")
-            
-            // テスト広告の設定情報を表示
-            print("AppDelegate: テスト広告ID: ca-app-pub-3940256099942544~1458002511")
+
         }
         
         // テストイベントを送信
@@ -182,6 +180,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
 @main
 struct countDownApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    @StateObject private var adConfig = AdConfig.shared
 
     var body: some Scene {
         WindowGroup {
@@ -190,6 +189,7 @@ struct countDownApp: App {
                     CountdownFeature()
                 }
             )
+            .environmentObject(adConfig)
         }
     }
 }

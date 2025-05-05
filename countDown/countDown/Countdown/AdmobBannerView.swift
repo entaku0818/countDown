@@ -4,15 +4,14 @@ import SwiftUI
 
 // MARK: - バナー広告View
 struct AdmobBannerView: UIViewRepresentable {
+    @EnvironmentObject private var adConfig: AdConfig
+    
     func makeUIView(context: Context) -> BannerView {
         let adSize = adSizeFor(cgSize: CGSize(width: 300, height: 50))
         let view = BannerView(adSize: adSize)
 
-        #if DEBUG
-        view.adUnitID = "ca-app-pub-3940256099942544/2435281174"
-        #else
-        view.adUnitID = "ca-app-pub-3940256099942544/2435281174" // 本番環境では実際の広告IDに変更
-        #endif
+        // AdConfigから広告IDを取得
+        view.adUnitID = adConfig.bannerAdUnitID
         view.rootViewController = UIApplication.shared.windows.first?.rootViewController
         view.delegate = context.coordinator
         view.load(Request())

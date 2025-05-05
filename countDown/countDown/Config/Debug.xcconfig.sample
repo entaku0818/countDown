@@ -1,0 +1,5 @@
+// Debug.xcconfig.sample
+// デバッグビルド用の設定サンプル
+
+// テスト用バナー広告ID
+ADMOB_BANNER_ID = ca-app-pub-3940256099942544/2435281174 
