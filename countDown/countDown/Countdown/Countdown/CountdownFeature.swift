@@ -9,9 +9,6 @@ struct CountdownFeature {
     struct State: Equatable {
         var events: [Event] = []
         var sharedEvents: [Event] = []
-        var sortOrder: SortOrder = .date
-        var searchText: String = ""
-        var filteredEvents: [Event] = []
         var user: User? = nil
         var isSigningIn: Bool = false
         var shouldShowLaunchAd: Bool = false
@@ -21,11 +18,6 @@ struct CountdownFeature {
         @Presents var alert: AlertState<Action.Alert>?
         
         static let freeVersionEventLimit = 3
-        
-        enum SortOrder: Equatable {
-            case date
-            case daysRemaining
-        }
     }
     
     enum Action: BindableAction {
@@ -44,7 +36,6 @@ struct CountdownFeature {
         case showAlert(Alert)
         case addEvent(PresentationAction<AddEventFeature.Action>)
         case editEvent(PresentationAction<AddEventFeature.Action>)
-        case updateFilteredEvents
         case alert(PresentationAction<Alert>)
         
         enum Alert: Equatable {
@@ -66,14 +57,6 @@ struct CountdownFeature {
         Reduce { state, action in
             switch action {
             case .binding:
-                return .send(.updateFilteredEvents)
-                
-            case .updateFilteredEvents:
-                state.filteredEvents = sortedAndFilteredEvents(
-                    state.events,
-                    sortOrder: state.sortOrder,
-                    searchText: state.searchText
-                )
                 return .none
                 
             case .onAppear:
@@ -122,7 +105,7 @@ struct CountdownFeature {
                 
             case let .eventsLoaded(events):
                 state.events = events
-                return .send(.updateFilteredEvents)
+                return .none
                 
             case let .sharedEventsLoaded(events):
                 state.sharedEvents = events
@@ -159,7 +142,6 @@ struct CountdownFeature {
                     for event in eventsToDelete {
                         await eventStorage.deleteEvent(event.id)
                     }
-                    await send(.updateFilteredEvents)
                 }
                 
             case let .eventTapped(event):
@@ -263,7 +245,6 @@ struct CountdownFeature {
                 return .run { send in
                     // イベントを保存（共有情報なし）
                     await eventStorage.saveEvent(event, nil)
-                    await send(.updateFilteredEvents)
                     
                     // 通知設定が有効な場合、通知をスケジュール
                     if event.hasEnabledNotifications {
@@ -284,7 +265,6 @@ struct CountdownFeature {
                 return .run { send in
                     // 既存の共有情報は維持したまま更新
                     await eventStorage.updateEvent(event, nil)
-                    await send(.updateFilteredEvents)
                     
                     // 通知設定が変更されていれば通知をスケジュールし直す
                     let userId = authClient.getCurrentUserId()
@@ -331,28 +311,6 @@ struct CountdownFeature {
         }
         .ifLet(\.$editEvent, action: \.editEvent) {
             AddEventFeature()
-        }
-    }
-    
-    private func sortedAndFilteredEvents(_ events: [Event], sortOrder: State.SortOrder, searchText: String) -> [Event] {
-        var filteredEvents = events
-        
-        // 検索フィルタリング
-        if !searchText.isEmpty {
-            filteredEvents = filteredEvents.filter { event in
-                event.title.localizedCaseInsensitiveContains(searchText) ||
-                event.note.localizedCaseInsensitiveContains(searchText)
-            }
-        }
-        
-        // 並び替え
-        return filteredEvents.sorted { event1, event2 in
-            switch sortOrder {
-            case .date:
-                return event1.date < event2.date
-            case .daysRemaining:
-                return event1.daysRemaining < event2.daysRemaining
-            }
         }
     }
 } 

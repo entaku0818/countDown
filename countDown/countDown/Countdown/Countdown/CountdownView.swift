@@ -19,15 +19,7 @@ struct CountdownView: View {
                 VStack(spacing: 0) {
                     List {
                         Section {
-                            Picker("並び替え", selection: $store.sortOrder) {
-                                Text("日付順").tag(CountdownFeature.State.SortOrder.date)
-                                Text("残り日数順").tag(CountdownFeature.State.SortOrder.daysRemaining)
-                            }
-                            .pickerStyle(.segmented)
-                        }
-
-                        Section {
-                            ForEach(store.filteredEvents) { event in
+                            ForEach(store.events) { event in
                                 NavigationLink {
                                     EventDetailView(
                                         event: event,
@@ -57,10 +49,6 @@ struct CountdownView: View {
                             }
                         }
                     }
-                    .searchable(
-                        text: $store.searchText,
-                        prompt: "イベントを検索"
-                    )
                     
                     // バナー広告の表示
                     AdmobBannerView()
