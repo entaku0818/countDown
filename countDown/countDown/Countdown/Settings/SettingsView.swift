@@ -1,5 +1,6 @@
 import SwiftUI
 import ComposableArchitecture
+import SafariServices
 
 struct SettingsView: View {
     let user: User?
@@ -16,6 +17,8 @@ struct SettingsView: View {
     @State private var notificationStatus: NotificationAuthorizationStatus = .notDetermined
     @State private var tokenStatus: TokenStatus?
     @State private var showCopiedMessage = false
+    @State private var showTermsWebView = false
+    @State private var showPrivacyWebView = false
     
     var body: some View {
         List {
@@ -33,12 +36,12 @@ struct SettingsView: View {
             }
             
             Section("一般設定") {
-                NavigationLink(destination: Text("利用規約画面をここに実装")) {
-                    Text("利用規約")
+                Button("利用規約") {
+                    showTermsWebView = true
                 }
                 
-                NavigationLink(destination: Text("プライバシーポリシー画面をここに実装")) {
-                    Text("プライバシーポリシー")
+                Button("プライバシーポリシー") {
+                    showPrivacyWebView = true
                 }
             }
             
@@ -155,6 +158,12 @@ struct SettingsView: View {
         .onAppear {
             loadNotificationStatus()
         }
+        .sheet(isPresented: $showTermsWebView) {
+            SafariView(url: URL(string: "https://countdown-336cf.web.app/terms_of_service.html")!)
+        }
+        .sheet(isPresented: $showPrivacyWebView) {
+            SafariView(url: URL(string: "https://countdown-336cf.web.app/privacy_policy.html")!)
+        }
     }
     
     private var notificationStatusText: String {
@@ -217,5 +226,18 @@ struct SettingsView: View {
                 print("テスト通知の送信に失敗: ユーザーIDが空です")
             }
         }
+    }
+}
+
+// SafariView を実装
+struct SafariView: UIViewControllerRepresentable {
+    let url: URL
+    
+    func makeUIViewController(context: Context) -> SFSafariViewController {
+        return SFSafariViewController(url: url)
+    }
+    
+    func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {
+        // 更新処理が必要な場合はここに実装
     }
 } 
