@@ -102,19 +102,6 @@ struct AddEventView: View {
                 }
             }
             
-            Section(header: Text("表示形式")) {
-                Picker("スタイル", selection: $store.event.displayFormat.style) {
-                    ForEach(DisplayFormat.CountdownStyle.allCases, id: \.self) { style in
-                        Text(style.rawValue).tag(style)
-                    }
-                }
-                
-                Toggle("日数表示", isOn: $store.event.displayFormat.showDays)
-                Toggle("時間表示", isOn: $store.event.displayFormat.showHours)
-                Toggle("分表示", isOn: $store.event.displayFormat.showMinutes)
-                Toggle("秒表示", isOn: $store.event.displayFormat.showSeconds)
-            }
-            
             Section(header: Text("メモ")) {
                 if #available(iOS 16.0, *) {
                     TextEditor(text: $store.event.note)
