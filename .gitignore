@@ -6,3 +6,5 @@ xcuserdata/
 
 # macOS
 .DS_Store 
+countDown/fastlane/.env.default
+countDown/fastlane/AuthKey_R2Q4FFAG8D.p8

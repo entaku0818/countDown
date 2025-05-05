@@ -1,0 +1,13 @@
+# Fastlane specific
+report.xml
+Preview.html
+fastlane/screenshots
+fastlane/test_output
+fastlane/screenshots/*
+fastlane/report.xml
+
+# API Key file
+*.p8
+
+# Build artifacts
+build/ 

@@ -1,0 +1,10 @@
+CountDown is a simple and intuitive countdown timer app that helps you keep track of important events, deadlines, and special occasions.
+
+Features:
+• Create multiple countdown timers with custom names and dates
+• Beautiful, clean interface with SwiftUI
+• Simple and easy to use
+• Notification reminders for upcoming events
+• Customizable theme
+
+Whether you're counting down to a birthday, vacation, wedding, or any other special event, CountDown makes it easy to see exactly how much time is left.

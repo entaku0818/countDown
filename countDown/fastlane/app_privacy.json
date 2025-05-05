@@ -1,0 +1,33 @@
+{
+  "TRACKING": {
+    "DATA_TYPES": []
+  },
+  "DATA_LINKED_TO_YOU": {
+    "DATA_TYPES": []
+  },
+  "DATA_NOT_LINKED_TO_YOU": {
+    "DATA_TYPES": [
+      {
+        "DATA_TYPE": "Usage Data",
+        "DATA_USAGE": "App Functionality",
+        "DATA_COLLECTION": "App"
+      }
+    ]
+  },
+  "DATA_NOT_COLLECTED": {
+    "DATA_TYPES": [
+      "Contact Info",
+      "Health and Fitness",
+      "Financial Info",
+      "Location",
+      "Sensitive Info",
+      "Contacts",
+      "User Content",
+      "Browsing History",
+      "Search History",
+      "Identifiers",
+      "Purchases",
+      "Diagnostics"
+    ]
+  }
+} 
