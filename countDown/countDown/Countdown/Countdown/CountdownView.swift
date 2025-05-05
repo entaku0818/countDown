@@ -29,7 +29,12 @@ struct CountdownView: View {
                         Section {
                             ForEach(store.filteredEvents) { event in
                                 NavigationLink {
-                                    EventDetailView(event: event)
+                                    EventDetailView(
+                                        event: event,
+                                        onEditTapped: { event in
+                                            store.send(.eventTapped(event))
+                                        }
+                                    )
                                 } label: {
                                     EventRow(event: event)
                                 }

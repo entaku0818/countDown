@@ -3,6 +3,7 @@ import ComposableArchitecture
 
 struct EventDetailView: View {
     let event: Event
+    let onEditTapped: (Event) -> Void
     
     var body: some View {
         List {
@@ -61,16 +62,28 @@ struct EventDetailView: View {
         }
         .navigationTitle("イベント詳細")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    onEditTapped(event)
+                } label: {
+                    Image(systemName: "pencil")
+                }
+            }
+        }
     }
 }
 
 #Preview {
     NavigationStack {
-        EventDetailView(event: Event(
-            title: "サンプルイベント",
-            date: Date(),
-            color: "blue", note: "これはサンプルのイベントです。",
-            displayFormat: DisplayFormat(style: .days)
-        ))
+        EventDetailView(
+            event: Event(
+                title: "サンプルイベント",
+                date: Date(),
+                color: "blue", note: "これはサンプルのイベントです。",
+                displayFormat: DisplayFormat(style: .days)
+            ),
+            onEditTapped: { _ in }
+        )
     }
 } 
