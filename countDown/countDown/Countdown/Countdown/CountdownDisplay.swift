@@ -13,7 +13,7 @@ struct DaysCountdownView: View {
     
     var body: some View {
         VStack(alignment: .trailing) {
-            HStack(alignment: .lastTextBaseline, spacing: 2) {
+            if event.isToday {
                 Text(countdownText)
                     .font(.title)
                     .bold()
@@ -22,6 +22,17 @@ struct DaysCountdownView: View {
                 Text(countdownLabel)
                     .font(.caption)
                     .foregroundColor(.secondary)
+            } else {
+                HStack(alignment: .lastTextBaseline, spacing: 2) {
+                    Text(countdownText)
+                        .font(.title)
+                        .bold()
+                        .foregroundColor(countdownColor)
+                    
+                    Text(countdownLabel)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
             }
             
             if event.isWithinSevenDays && !event.isPast && !event.isToday {
