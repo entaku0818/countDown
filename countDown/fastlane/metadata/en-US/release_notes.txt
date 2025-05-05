@@ -1,5 +1,11 @@
-New Features:
-- Added 60-second skip forward/backward functionality
+Initial Release v0.1.0
+- Countdown timer functionality
+- Multiple event registration and management
+- Notification features
+- iOS 17.0+ support
+- Beautiful UI design
 
-Other:
-- Minor improvements and bug fixes
+Additional features:
+- Intuitive user experience
+- Customizable event display
+- Minimal ads for better user experience
