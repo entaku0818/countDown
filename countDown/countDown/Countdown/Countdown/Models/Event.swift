@@ -40,7 +40,7 @@ struct Event: Equatable, Identifiable, Codable {
         let components = calendar.dateComponents([.day], from: Date(), to: date)
         return components.day ?? 0
     }
-    
+
     var hoursRemaining: Int {
         let calendar = Calendar.current
         let components = calendar.dateComponents([.day, .hour, .minute], from: Date(), to: date)

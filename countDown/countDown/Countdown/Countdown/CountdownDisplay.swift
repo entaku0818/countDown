@@ -4,7 +4,7 @@ struct CountdownDisplay: View {
     var event: Event
     
     var body: some View {
-        DaysCountdownView(event: event)
+                DaysCountdownView(event: event)
     }
 }
 
@@ -24,14 +24,14 @@ struct DaysCountdownView: View {
                     .foregroundColor(.secondary)
             } else {
                 HStack(alignment: .lastTextBaseline, spacing: 2) {
-                    Text(countdownText)
-                        .font(.title)
-                        .bold()
-                        .foregroundColor(countdownColor)
-                    
-                    Text(countdownLabel)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+            Text(countdownText)
+                .font(.title)
+                .bold()
+                .foregroundColor(countdownColor)
+            
+            Text(countdownLabel)
+                .font(.caption)
+                .foregroundColor(.secondary)
                 }
             }
             

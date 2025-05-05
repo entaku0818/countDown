@@ -1,6 +1,6 @@
 # Firebase cache
 .firebase/
-
+ 
 # Firebase config
 .firebaserc
 firebase-debug.log 
