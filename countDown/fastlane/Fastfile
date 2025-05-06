@@ -47,7 +47,7 @@ platform :ios do
       skip_app_version_update: false, # アプリバージョンの更新をスキップしない
       app_version: version_number,    # アプリのバージョン番号を指定
       skip_metadata: false,          # メタデータの更新をスキップしない
-      skip_screenshots: false,       # スクリーンショットのアップロードをスキップしない
+      skip_screenshots: true,       # スクリーンショットのアップロードをスキップしない
       force: true,                   # 確認なしで強制的に実行
       overwrite_screenshots: true,   # 既存のスクリーンショットを上書き
       ignore_language_directory_validation: true, # 言語ディレクトリの検証を無視
@@ -55,14 +55,13 @@ platform :ios do
       precheck_include_in_app_purchases: false,  # In-app purchasesのチェックをスキップ
       price_tier: 0,                 # 無料アプリとして設定（0は無料）
       app_rating_config_path: "./fastlane/rating_config.json", # レーティング設定ファイル
-      app_privacy_details_path: "./fastlane/app_privacy.json", # アプリのプライバシー情報
       submission_information: {
         add_id_info_uses_idfa: false,  # IDFAの使用なし
         export_compliance_uses_encryption: false,  # 暗号化なし
         export_compliance_platform: "ios",  # プラットフォームはiOS
         content_rights_contains_third_party_content: false, # サードパーティコンテンツを含まない
         content_rights_has_rights: true, # コンテンツ使用権を持っていることを確認
-        submission_comment: "Fix the screenshot and privacy issues.", # 提出時のコメント
+        submission_comment: "初回リリース v0.1.0", # 提出時のコメント
         rejection_versioning_activated: true # バージョンがリジェクトされた場合に自動的に新バージョンを作成
       }
     )

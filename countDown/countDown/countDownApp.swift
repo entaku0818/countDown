@@ -13,6 +13,8 @@ import FirebaseFirestore
 import FirebaseMessaging
 import UserNotifications
 import GoogleMobileAds
+import AppTrackingTransparency
+import AdSupport
 
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
     // MARK: - Dependencies
@@ -28,7 +30,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         print("AppDelegate: AdMobの初期化を開始")
         MobileAds.shared.start { status in
             print("AppDelegate: AdMobの初期化完了 - ステータス: \(status)")
-
         }
         
         // テストイベントを送信
@@ -54,7 +55,44 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
             ])
         }
         
+        // App Tracking Transparencyの許可リクエストは
+        // アプリの起動から少し遅らせて表示（ユーザー体験向上のため）
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            self.requestTrackingAuthorization()
+        }
+        
         return true
+    }
+    
+    // MARK: - App Tracking Transparency
+    func requestTrackingAuthorization() {
+        ATTrackingManager.requestTrackingAuthorization { status in
+            switch status {
+            case .authorized:
+                // トラッキング許可が与えられた
+                print("トラッキング許可が承認されました")
+                Analytics.logEvent("tracking_authorized", parameters: nil)
+                
+            case .denied:
+                // ユーザーが許可を拒否
+                print("トラッキング許可が拒否されました")
+                Analytics.logEvent("tracking_denied", parameters: nil)
+                
+            case .restricted:
+                // デバイス制限により許可できない
+                print("トラッキングが制限されています")
+                Analytics.logEvent("tracking_restricted", parameters: nil)
+                
+            case .notDetermined:
+                // ユーザーがまだ選択していない
+                print("トラッキング許可が未決定です")
+                Analytics.logEvent("tracking_notdetermined", parameters: nil)
+                
+            @unknown default:
+                print("不明なトラッキング許可状態です")
+                Analytics.logEvent("tracking_unknown", parameters: nil)
+            }
+        }
     }
     
     // MARK: - Remote Notifications
@@ -181,7 +219,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
 struct countDownApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject private var adConfig = AdConfig.shared
-
+    
     var body: some Scene {
         WindowGroup {
             CountdownView(
@@ -190,6 +228,12 @@ struct countDownApp: App {
                 }
             )
             .environmentObject(adConfig)
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+                // アプリがアクティブになったときにもトラッキング許可を確認（初回起動以外の場合）
+                if ATTrackingManager.trackingAuthorizationStatus == .notDetermined {
+                    delegate.requestTrackingAuthorization()
+                }
+            }
         }
     }
 }
