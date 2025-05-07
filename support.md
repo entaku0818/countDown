@@ -23,9 +23,10 @@ CountDownアプリは、シンプルで使いやすいカウントダウンタ�
 3. 「保存」をタップして設定を反映
 
 ## お問い合わせ
-不具合や改善要望などございましたら、以下のフォームからお気軽にお問い合わせください。
+不具合や改善要望などございましたら、以下のいずれかの方法でお気軽にお問い合わせください。
 
-[問い合わせフォーム](https://forms.gle/your-form-url)
+- メール: [entaku19890818@gmail.com](mailto:entaku19890818@gmail.com)
+- X（Twitter）: [@entaku_0818](https://twitter.com/entaku_0818)
 
 ## プライバシーポリシー
 当アプリケーションにおける、ユーザーの個人情報の取り扱いについて以下の通り定めています。
@@ -45,7 +46,7 @@ CountDownアプリは、シンプルで使いやすいカウントダウンタ�
 広告配信に関する詳細は[AdMobのプライバシーポリシー](https://policies.google.com/technologies/ads)をご確認ください。
 
 ### 4. お問い合わせ
-プライバシーポリシーに関するお問い合わせは、上記の問い合わせフォームよりご連絡ください。
+プライバシーポリシーに関するお問い合わせは、上記のメールまたはX（Twitter）よりご連絡ください。
 
 ## アプリのバージョン情報
 - 現在のバージョン: 0.1.0
@@ -53,4 +54,5 @@ CountDownアプリは、シンプルで使いやすいカウントダウンタ�
 
 ## 開発者情報
 - 開発者: Takumi Endo
-- メール: [your-email@example.com] 
+- メール: [entaku19890818@gmail.com](mailto:entaku19890818@gmail.com)
+- X（Twitter）: [@entaku_0818](https://twitter.com/entaku_0818) 
