@@ -1,0 +1,57 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# CountDown App Development Guide
+
+## Development Setup
+1. Clone the repository
+2. Install Xcode 15.0 or later
+3. Install Firebase CLI for web deployment
+4. Set up Firebase project and add configuration files
+
+## Project Structure
+- `countDown/` - iOS app source code
+- `LP/` - Landing page files
+- `Tests/` - Unit and UI tests
+- `fastlane/` - CI/CD configuration
+
+## Key Development Guidelines
+
+### iOS App
+- Use SwiftUI for UI components
+- Follow MVVM architecture
+- Use ComposableArchitecture for state management
+- Maintain iOS 17.0+ compatibility
+- Follow Apple's Human Interface Guidelines
+
+### Landing Page
+- Keep HTML/CSS in the `LP` directory
+- Maintain responsive design
+- Support both Japanese and English
+- Follow web accessibility guidelines
+
+### Firebase Integration
+- Use Firebase Hosting for web deployment
+- Implement Firebase Authentication
+- Use Firestore for data storage
+- Configure Firebase Analytics
+
+### Testing
+- Write unit tests for business logic
+- Include UI tests for critical flows
+- Test on multiple iOS versions
+- Verify web compatibility
+
+### Deployment
+- Use fastlane for iOS deployment
+- Deploy web updates via Firebase
+- Maintain version control
+- Follow semantic versioning
+
+### Documentation
+- Keep README.md updated
+- Document major changes
+- Maintain inline code comments
+- Update App Store description

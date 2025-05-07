@@ -1,0 +1,47 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# CountDown App Features
+
+## Core Features
+- Event management with countdown display
+- Color customization for events
+- Notification system
+- Free version with 3 event limit
+
+## Key Components
+
+### Event Management
+- [Event.swift](mdc:countDown/countDown/Countdown/Countdown/Models/Event.swift) defines the event model
+- [EventRow.swift](mdc:countDown/countDown/Countdown/Countdown/EventRow.swift) displays events in the list
+- [EventDetailView.swift](mdc:countDown/countDown/Countdown/Countdown/EventDetailView.swift) shows event details
+
+### Countdown Display
+- [CountdownDisplay.swift](mdc:countDown/countDown/Countdown/Countdown/CountdownDisplay.swift) handles countdown visualization
+- Supports different display formats (days, hours, minutes)
+- Shows special states (today, past events)
+
+### Color System
+- [EventColor.swift](mdc:countDown/countDown/Countdown/Countdown/EventColor.swift) defines available colors
+- Supports 7 colors: red, orange, yellow, green, blue, purple, pink
+- Color selection in event creation/editing
+
+### Notification System
+- Event-based notifications
+- Configurable notification timing
+- Notification settings management
+
+### Data Management
+- Firebase integration for data storage
+- Local data persistence
+- Event synchronization
+
+### UI Components
+- List view for events
+- Detail view for event information
+- Add/Edit event form
+- Settings view
+- Color picker
+- Notification settings

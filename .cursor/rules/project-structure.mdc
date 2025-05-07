@@ -1,0 +1,33 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# CountDown App Project Structure
+
+## iOS App
+The main iOS app is located in the `countDown` directory. Key files include:
+
+- [countDownApp.swift](mdc:countDown/countDown/countDownApp.swift) - Main app entry point
+- [Event.swift](mdc:countDown/countDown/Countdown/Countdown/Models/Event.swift) - Event model definition
+- [EventRow.swift](mdc:countDown/countDown/Countdown/Countdown/EventRow.swift) - Event list row view
+- [EventDetailView.swift](mdc:countDown/countDown/Countdown/Countdown/EventDetailView.swift) - Event detail view
+- [CountdownDisplay.swift](mdc:countDown/countDown/Countdown/Countdown/CountdownDisplay.swift) - Countdown display component
+- [EventColor.swift](mdc:countDown/countDown/Countdown/Countdown/EventColor.swift) - Color definitions for events
+
+## Landing Page
+The landing page is in the `LP` directory:
+
+- [index.html](mdc:LP/index.html) - Main landing page (Japanese)
+- [support.html](mdc:LP/support.html) - Support page (Japanese)
+- [support.en.html](mdc:LP/support.en.html) - Support page (English)
+- [privacy_policy.html](mdc:LP/privacy_policy.html) - Privacy policy
+- [terms_of_service.html](mdc:LP/terms_of_service.html) - Terms of service
+
+## Configuration
+- [firebase.json](mdc:LP/firebase.json) - Firebase hosting configuration
+- [GoogleService-Info.plist](mdc:countDown/countDown/GoogleService-Info.plist) - Firebase configuration for iOS app
+
+## Development
+- [README.md](mdc:README.md) - Project documentation
+- [App.md](mdc:App.md) - App documentation
