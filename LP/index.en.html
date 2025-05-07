@@ -6,6 +6,15 @@
     <title>CountDown App - Simple Countdown Timer App</title>
     <link rel="stylesheet" href="css/style.css">
     <meta name="description" content="CountDown App - A simple iOS app that beautifully counts down to your important dates">
+    <script>
+        // ブラウザの言語設定を取得
+        const userLang = navigator.language || navigator.userLanguage;
+        
+        // 日本語の場合、日本語版にリダイレクト
+        if (userLang.startsWith('ja')) {
+            window.location.href = 'index.html';
+        }
+    </script>
 </head>
 <body>
     <header>
