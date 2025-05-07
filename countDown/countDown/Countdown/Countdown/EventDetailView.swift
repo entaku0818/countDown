@@ -24,6 +24,10 @@ struct EventDetailView: View {
                     }
                 }
                 .padding()
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color(stringValue: event.color), lineWidth: 10)
+                )
             }
             
             Section("日付") {

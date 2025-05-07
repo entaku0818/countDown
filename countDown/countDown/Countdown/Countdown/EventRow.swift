@@ -4,7 +4,12 @@ struct EventRow: View {
     var event: Event
     
     var body: some View {
-        HStack {
+        HStack(spacing: 0) {
+            RoundedRectangle(cornerRadius: 4)
+                .fill(Color(stringValue: event.color))
+                .frame(width: 10)
+                .padding(.trailing, 12)
+            
             VStack(alignment: .leading, spacing: 4) {
                 Text(event.title)
                     .font(.headline)
