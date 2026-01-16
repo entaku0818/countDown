@@ -37,7 +37,14 @@ struct Event: Equatable, Identifiable, Codable {
 
     var daysRemaining: Int {
         let calendar = Calendar.current
-        let components = calendar.dateComponents([.day], from: Date(), to: date)
+        let components = calendar.dateComponents([.day], from: calendar.startOfDay(for: Date()), to: calendar.startOfDay(for: date))
+        return components.day ?? 0
+    }
+
+    /// 経過日数（カウントアップ用）
+    var daysPassed: Int {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.day], from: calendar.startOfDay(for: date), to: calendar.startOfDay(for: Date()))
         return components.day ?? 0
     }
 

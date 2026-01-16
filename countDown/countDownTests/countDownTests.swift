@@ -28,6 +28,14 @@ struct EventTests {
         #expect(event.daysRemaining < 0)
     }
 
+    @Test func eventDaysPassed() async throws {
+        let pastDate = Calendar.current.date(byAdding: .day, value: -10, to: Date())!
+        let event = Event(title: "カウントアップイベント", date: pastDate)
+
+        #expect(event.daysPassed >= 9 && event.daysPassed <= 10)
+        #expect(event.isPast == true)
+    }
+
     @Test func eventIsToday() async throws {
         let event = Event(title: "今日のイベント", date: Date())
 

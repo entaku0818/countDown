@@ -47,17 +47,17 @@ struct DaysCountdownView: View {
         if event.isToday {
             return "今日"
         } else if event.isPast {
-            return "\(abs(event.daysRemaining))"
+            return "\(event.daysPassed)"
         } else {
             return "\(event.daysRemaining)"
         }
     }
-    
+
     private var countdownLabel: String {
         if event.isToday {
             return "当日です！"
         } else if event.isPast {
-            return "日前"
+            return "日経過"
         } else {
             return "日後"
         }
