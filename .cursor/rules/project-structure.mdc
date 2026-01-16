@@ -3,31 +3,51 @@ description:
 globs:
 alwaysApply: false
 ---
-# CountDown App Project Structure
+# CountDown Project Structure Guide
 
-## iOS App
-The main iOS app is located in the `countDown` directory. Key files include:
+## Landing Page (LP)
+The landing page is a static website built with HTML, CSS, and JavaScript.
 
-- [countDownApp.swift](mdc:countDown/countDown/countDownApp.swift) - Main app entry point
-- [Event.swift](mdc:countDown/countDown/Countdown/Countdown/Models/Event.swift) - Event model definition
-- [EventRow.swift](mdc:countDown/countDown/Countdown/Countdown/EventRow.swift) - Event list row view
-- [EventDetailView.swift](mdc:countDown/countDown/Countdown/Countdown/EventDetailView.swift) - Event detail view
-- [CountdownDisplay.swift](mdc:countDown/countDown/Countdown/Countdown/CountdownDisplay.swift) - Countdown display component
-- [EventColor.swift](mdc:countDown/countDown/Countdown/Countdown/EventColor.swift) - Color definitions for events
+### Key Files
+- Main page: [index.html](mdc:LP/index.html)
+- Styles: [css/style.css](mdc:LP/css/style.css)
+- JavaScript: [js/main.js](mdc:LP/js/main.js)
+- Legal documents:
+  - [privacy_policy.html](mdc:LP/privacy_policy.html)
+  - [terms_of_service.html](mdc:LP/terms_of_service.html)
+  - [support.html](mdc:LP/support.html)
 
-## Landing Page
-The landing page is in the `LP` directory:
+### Configuration
+- Firebase config: [.firebaserc](mdc:LP/.firebaserc)
+- Firebase hosting config: [firebase.json](mdc:LP/firebase.json)
 
-- [index.html](mdc:LP/index.html) - Main landing page (Japanese)
-- [support.html](mdc:LP/support.html) - Support page (Japanese)
-- [support.en.html](mdc:LP/support.en.html) - Support page (English)
-- [privacy_policy.html](mdc:LP/privacy_policy.html) - Privacy policy
-- [terms_of_service.html](mdc:LP/terms_of_service.html) - Terms of service
+## Server
+The server directory contains Firebase Cloud Functions and configuration.
 
-## Configuration
-- [firebase.json](mdc:LP/firebase.json) - Firebase hosting configuration
-- [GoogleService-Info.plist](mdc:countDown/countDown/GoogleService-Info.plist) - Firebase configuration for iOS app
+### Key Files
+- Firebase config: [.firebaserc](mdc:server/.firebaserc)
+- Firebase hosting config: [firebase.json](mdc:server/firebase.json)
+- Firestore rules: [firestore.rules](mdc:server/firestore.rules)
+- Firestore indexes: [firestore.indexes.json](mdc:server/firestore.indexes.json)
 
-## Development
-- [README.md](mdc:README.md) - Project documentation
-- [App.md](mdc:App.md) - App documentation
+## Project Structure
+```
+countDown/
+├── LP/                    # Landing page files
+│   ├── css/              # Stylesheets
+│   ├── js/               # JavaScript files
+│   ├── images/           # Image assets
+│   └── *.html           # HTML pages
+├── server/               # Firebase server files
+│   └── functions/        # Cloud Functions
+└── countDown/            # iOS app source
+```
+
+## Deployment
+- Landing page is deployed to Firebase Hosting
+- Server functions are deployed to Firebase Cloud Functions
+- App is published on the App Store
+
+## Important Links
+- App Store: https://apps.apple.com/countdownlist-eventtimer/id6745453926
+- Firebase Hosting: https://countdown-336cf.web.app
