@@ -95,6 +95,24 @@ enum NotificationTiming: Equatable, Codable, CaseIterable {
             return "\(days)日前"
         }
     }
+
+    /// 通知IDで使用する一意の識別子
+    var identifier: String {
+        switch self {
+        case .none:
+            return "none"
+        case .sameDay:
+            return "sameDay"
+        case .dayBefore:
+            return "dayBefore"
+        case .weekBefore:
+            return "weekBefore"
+        case .monthBefore:
+            return "monthBefore"
+        case .custom(let days):
+            return "custom_\(days)"
+        }
+    }
     
     /// 指定された日付から通知するタイミングの日付を計算
     func notificationDate(for eventDate: Date) -> Date? {
