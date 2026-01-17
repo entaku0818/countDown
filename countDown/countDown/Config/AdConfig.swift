@@ -37,8 +37,7 @@ class AdConfig: ObservableObject {
         print("Using default debug AdMob banner ID")
         return "ca-app-pub-3940256099942544/2435281174"
         #else
-        // リリース用のデフォルト値を使用（テスト用ID）
-        // TODO: 本番環境では実際の広告IDに変更
+        // フォールバック用テストID（通常はRelease.xcconfigの値が使用される）
         print("Using default release AdMob banner ID")
         return "ca-app-pub-3940256099942544/2435281174"
         #endif

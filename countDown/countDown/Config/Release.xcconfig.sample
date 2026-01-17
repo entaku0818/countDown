@@ -1,6 +1,6 @@
 // Release.xcconfig.sample
 // リリースビルド用の設定サンプル
+// このファイルをRelease.xcconfigにコピーして本番用IDを設定してください
 
-// 本番用バナー広告ID
-// TODO: 本番環境では実際の広告IDに変更
-ADMOB_BANNER_ID = ca-app-pub-3940256099942544/2435281174 
+// 本番用バナー広告ID（サンプルはテストID）
+ADMOB_BANNER_ID = ca-app-pub-3940256099942544/2435281174
