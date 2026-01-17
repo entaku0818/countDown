@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		6121E3472DA27E3200EF9800 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 6121E3462DA27E3200EF9800 /* ComposableArchitecture */; };
+		614412EA2F1B5B3A002D5A59 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 614412E92F1B5B3A002D5A59 /* WidgetKit.framework */; };
+		614412EC2F1B5B3A002D5A59 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 614412EB2F1B5B3A002D5A59 /* SwiftUI.framework */; };
+		614412FD2F1B5B3B002D5A59 /* countDownWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 614412E82F1B5B39002D5A59 /* countDownWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		61992A672DABFD7900FED06D /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 61992A662DABFD7900FED06D /* FirebaseAnalytics */; };
 		61992A692DABFD7900FED06D /* FirebaseAnalyticsOnDeviceConversion in Frameworks */ = {isa = PBXBuildFile; productRef = 61992A682DABFD7900FED06D /* FirebaseAnalyticsOnDeviceConversion */; };
 		61992A6B2DABFD7900FED06D /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */ = {isa = PBXBuildFile; productRef = 61992A6A2DABFD7900FED06D /* FirebaseAnalyticsWithoutAdIdSupport */; };
@@ -50,15 +53,46 @@
 			remoteGlobalIDString = 6121E27A2DA278FA00EF9800;
 			remoteInfo = countDown;
 		};
+		614412FB2F1B5B3B002D5A59 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6121E2732DA278FA00EF9800 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 614412E72F1B5B39002D5A59;
+			remoteInfo = countDownWidgetsExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		614413022F1B5B3B002D5A59 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				614412FD2F1B5B3B002D5A59 /* countDownWidgetsExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		6121E27B2DA278FA00EF9800 /* countDown.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = countDown.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6121E28B2DA278FC00EF9800 /* countDownTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = countDownTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6121E2952DA278FC00EF9800 /* countDownUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = countDownUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		614412E82F1B5B39002D5A59 /* countDownWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = countDownWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		614412E92F1B5B3A002D5A59 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		614412EB2F1B5B3A002D5A59 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		614413012F1B5B3B002D5A59 /* Exceptions for "countDownWidgets" folder in "countDownWidgetsExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 614412E72F1B5B39002D5A59 /* countDownWidgetsExtension */;
+		};
 		61992A9F2DAEA4C300FED06D /* Exceptions for "countDown" folder in "countDown" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -85,6 +119,14 @@
 		6121E2982DA278FC00EF9800 /* countDownUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = countDownUITests;
+			sourceTree = "<group>";
+		};
+		614412ED2F1B5B3A002D5A59 /* countDownWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				614413012F1B5B3B002D5A59 /* Exceptions for "countDownWidgets" folder in "countDownWidgetsExtension" target */,
+			);
+			path = countDownWidgets;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -137,6 +179,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		614412E52F1B5B39002D5A59 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				614412EC2F1B5B3A002D5A59 /* SwiftUI.framework in Frameworks */,
+				614412EA2F1B5B3A002D5A59 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -146,6 +197,7 @@
 				6121E27D2DA278FA00EF9800 /* countDown */,
 				6121E28E2DA278FC00EF9800 /* countDownTests */,
 				6121E2982DA278FC00EF9800 /* countDownUITests */,
+				614412ED2F1B5B3A002D5A59 /* countDownWidgets */,
 				6121E27C2DA278FA00EF9800 /* Products */,
 				AA1234502DA300000000001 /* Frameworks */,
 			);
@@ -157,6 +209,7 @@
 				6121E27B2DA278FA00EF9800 /* countDown.app */,
 				6121E28B2DA278FC00EF9800 /* countDownTests.xctest */,
 				6121E2952DA278FC00EF9800 /* countDownUITests.xctest */,
+				614412E82F1B5B39002D5A59 /* countDownWidgetsExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -164,6 +217,8 @@
 		AA1234502DA300000000001 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				614412E92F1B5B3A002D5A59 /* WidgetKit.framework */,
+				614412EB2F1B5B3A002D5A59 /* SwiftUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -178,10 +233,12 @@
 				6121E2772DA278FA00EF9800 /* Sources */,
 				6121E2782DA278FA00EF9800 /* Frameworks */,
 				6121E2792DA278FA00EF9800 /* Resources */,
+				614413022F1B5B3B002D5A59 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				614412FC2F1B5B3B002D5A59 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				6121E27D2DA278FA00EF9800 /* countDown */,
@@ -265,6 +322,28 @@
 			productReference = 6121E2952DA278FC00EF9800 /* countDownUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		614412E72F1B5B39002D5A59 /* countDownWidgetsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 614412FE2F1B5B3B002D5A59 /* Build configuration list for PBXNativeTarget "countDownWidgetsExtension" */;
+			buildPhases = (
+				614412E42F1B5B39002D5A59 /* Sources */,
+				614412E52F1B5B39002D5A59 /* Frameworks */,
+				614412E62F1B5B39002D5A59 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				614412ED2F1B5B3A002D5A59 /* countDownWidgets */,
+			);
+			name = countDownWidgetsExtension;
+			packageProductDependencies = (
+			);
+			productName = countDownWidgetsExtension;
+			productReference = 614412E82F1B5B39002D5A59 /* countDownWidgetsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -272,7 +351,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1620;
+				LastSwiftUpdateCheck = 2610;
 				LastUpgradeCheck = 1630;
 				TargetAttributes = {
 					6121E27A2DA278FA00EF9800 = {
@@ -285,6 +364,9 @@
 					6121E2942DA278FC00EF9800 = {
 						CreatedOnToolsVersion = 16.2;
 						TestTargetID = 6121E27A2DA278FA00EF9800;
+					};
+					614412E72F1B5B39002D5A59 = {
+						CreatedOnToolsVersion = 26.1;
 					};
 				};
 			};
@@ -310,6 +392,7 @@
 				6121E27A2DA278FA00EF9800 /* countDown */,
 				6121E28A2DA278FC00EF9800 /* countDownTests */,
 				6121E2942DA278FC00EF9800 /* countDownUITests */,
+				614412E72F1B5B39002D5A59 /* countDownWidgetsExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -330,6 +413,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		6121E2932DA278FC00EF9800 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		614412E62F1B5B39002D5A59 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -360,6 +450,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		614412E42F1B5B39002D5A59 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -372,6 +469,11 @@
 			isa = PBXTargetDependency;
 			target = 6121E27A2DA278FA00EF9800 /* countDown */;
 			targetProxy = 6121E2962DA278FC00EF9800 /* PBXContainerItemProxy */;
+		};
+		614412FC2F1B5B3B002D5A59 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 614412E72F1B5B39002D5A59 /* countDownWidgetsExtension */;
+			targetProxy = 614412FB2F1B5B3B002D5A59 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -643,6 +745,67 @@
 			};
 			name = Release;
 		};
+		614412FF2F1B5B3B002D5A59 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = countDownWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = countDownWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.entaku.countDown.countDownWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		614413002F1B5B3B002D5A59 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = countDownWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = countDownWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.entaku.countDown.countDownWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -678,6 +841,15 @@
 			buildConfigurations = (
 				6121E2A62DA278FC00EF9800 /* Debug */,
 				6121E2A72DA278FC00EF9800 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		614412FE2F1B5B3B002D5A59 /* Build configuration list for PBXNativeTarget "countDownWidgetsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				614412FF2F1B5B3B002D5A59 /* Debug */,
+				614413002F1B5B3B002D5A59 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

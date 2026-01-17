@@ -1,3 +1,10 @@
+//
+//  countDownWidgetsBundle.swift
+//  countDownWidgets
+//
+//  Created by 遠藤拓弥 on 2026/01/17.
+//
+
 import WidgetKit
 import SwiftUI
 
@@ -5,10 +12,9 @@ import SwiftUI
 struct countDownWidgetsBundle: WidgetBundle {
     var body: some Widget {
         CountdownWidget()
-
-        // ロック画面用ウィジェット
         if #available(iOSApplicationExtension 16.0, *) {
             CountdownLockScreenWidget()
         }
+        countDownWidgetsLiveActivity()
     }
 }
