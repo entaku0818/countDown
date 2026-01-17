@@ -27,6 +27,8 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         print("AppDelegate: AdMobの初期化を開始")
         MobileAds.shared.start { status in
             print("AppDelegate: AdMobの初期化完了 - ステータス: \(status)")
+            // AdMob初期化完了後にApp Open Adを読み込む
+            AppOpenAdManager.shared.appDidLaunch()
         }
 
         // アプリ起動イベントを送信
@@ -126,6 +128,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
 struct countDownApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject private var adConfig = AdConfig.shared
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
         WindowGroup {
@@ -139,6 +142,12 @@ struct countDownApp: App {
                 // アプリがアクティブになったときにもトラッキング許可を確認（初回起動以外の場合）
                 if ATTrackingManager.trackingAuthorizationStatus == .notDetermined {
                     delegate.requestTrackingAuthorization()
+                }
+
+                // フォアグラウンドに戻った時にApp Open Adを表示
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let rootViewController = windowScene.windows.first?.rootViewController {
+                    AppOpenAdManager.shared.showAdIfAvailable(from: rootViewController)
                 }
             }
         }
