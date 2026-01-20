@@ -52,6 +52,7 @@ struct CountdownFeature {
 
             case .updateFilteredEvents:
                 state.filteredEvents = sortedEvents(state.events)
+                print("CountdownFeature: updateFilteredEvents - events: \(state.events.count), filtered: \(state.filteredEvents.count)")
                 return .none
 
             case .onAppear:
@@ -61,6 +62,10 @@ struct CountdownFeature {
                 }
 
             case let .eventsLoaded(events):
+                print("CountdownFeature: eventsLoaded - \(events.count)件")
+                for event in events {
+                    print("  - \(event.title): \(event.date)")
+                }
                 state.events = events
                 return .send(.updateFilteredEvents)
 

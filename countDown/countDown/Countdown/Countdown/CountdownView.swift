@@ -74,7 +74,11 @@ struct CountdownView: View {
                 }
             }
             .onAppear {
+                print("CountdownView: onAppear called")
                 store.send(.onAppear)
+            }
+            .onChange(of: store.filteredEvents.count) { oldValue, newValue in
+                print("CountdownView: filteredEvents changed from \(oldValue) to \(newValue)")
             }
             .alert(store: store.scope(state: \.$alert, action: \.alert))
         }

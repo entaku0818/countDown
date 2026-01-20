@@ -130,13 +130,13 @@ struct countDownApp: App {
     @StateObject private var adConfig = AdConfig.shared
     @Environment(\.scenePhase) private var scenePhase
 
+    static let store = Store(initialState: CountdownFeature.State()) {
+        CountdownFeature()
+    }
+
     var body: some Scene {
         WindowGroup {
-            CountdownView(
-                store: Store(initialState: CountdownFeature.State()) {
-                    CountdownFeature()
-                }
-            )
+            CountdownView(store: Self.store)
             .environmentObject(adConfig)
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
                 // アプリがアクティブになったときにもトラッキング許可を確認（初回起動以外の場合）
