@@ -19,11 +19,22 @@ struct SharedDataManager {
 
     /// イベントを読み込み
     static func loadEvents() -> [WidgetEvent] {
-        guard let defaults = sharedDefaults,
-              let data = defaults.data(forKey: eventsKey),
-              let events = try? JSONDecoder().decode([WidgetEvent].self, from: data) else {
+        guard let defaults = sharedDefaults else {
+            print("Widget: App Groups UserDefaults が取得できません")
             return []
         }
+
+        guard let data = defaults.data(forKey: eventsKey) else {
+            print("Widget: データが見つかりません (key: \(eventsKey))")
+            return []
+        }
+
+        guard let events = try? JSONDecoder().decode([WidgetEvent].self, from: data) else {
+            print("Widget: デコードに失敗しました")
+            return []
+        }
+
+        print("Widget: \(events.count)件のイベントを読み込みました")
         return events
     }
 }
