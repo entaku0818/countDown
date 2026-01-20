@@ -116,8 +116,9 @@ class AppOpenAdManager: NSObject {
         print("AppOpenAd: 広告の読み込みを開始")
 
         let adUnitID = getAdUnitID()
+        let request = Request()
 
-        AppOpenAd.load(with: adUnitID) { [weak self] ad, error in
+        AppOpenAd.load(with: adUnitID, request: request) { [weak self] ad, error in
             self?.isLoadingAd = false
 
             if let error = error {
