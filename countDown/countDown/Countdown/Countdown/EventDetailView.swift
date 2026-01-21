@@ -4,7 +4,10 @@ import ComposableArchitecture
 struct EventDetailView: View {
     let event: Event
     let onEditTapped: (Event) -> Void
-    
+
+    @State private var now = Date()
+    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
     var body: some View {
         List {
             Section {
@@ -12,9 +15,18 @@ struct EventDetailView: View {
                     // 画像表示
                     eventImageView
 
-                    CountdownDisplay(event: event)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding(.vertical)
+                    // リアルタイムカウントダウン
+                    VStack(spacing: 8) {
+                        Text(formattedCountdown)
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .foregroundColor(Color(stringValue: event.color))
+
+                        Text(countdownSuffix)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical)
 
                     Text(event.title)
                         .font(.title)
@@ -77,6 +89,43 @@ struct EventDetailView: View {
                     Image(systemName: "pencil")
                 }
             }
+        }
+        .onReceive(timer) { _ in
+            now = Date()
+        }
+    }
+
+    /// リアルタイムカウントダウンテキスト
+    private var formattedCountdown: String {
+        let calendar = Calendar.current
+
+        if calendar.isDateInToday(event.date) {
+            return "今日"
+        }
+
+        let isPast = now > event.date
+
+        let components = calendar.dateComponents(
+            [.day, .hour, .minute, .second],
+            from: isPast ? event.date : now,
+            to: isPast ? now : event.date
+        )
+
+        let days = components.day ?? 0
+        let hours = components.hour ?? 0
+        let minutes = components.minute ?? 0
+        let seconds = components.second ?? 0
+
+        return "\(days)日 \(hours)時間 \(minutes)分 \(seconds)秒"
+    }
+
+    private var countdownSuffix: String {
+        if Calendar.current.isDateInToday(event.date) {
+            return "イベント当日"
+        } else if now > event.date {
+            return "経過"
+        } else {
+            return "後"
         }
     }
 
