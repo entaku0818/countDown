@@ -71,6 +71,12 @@ struct Event: Equatable, Identifiable, Codable {
         let components = calendar.dateComponents([.day, .hour, .minute], from: Date(), to: date)
         return components.minute ?? 0
     }
+
+    var secondsRemaining: Int {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.second], from: Date(), to: date)
+        return (components.second ?? 0) % 60
+    }
     
     var isWithinSevenDays: Bool {
         return 0 <= daysRemaining && daysRemaining < 7

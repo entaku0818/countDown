@@ -139,6 +139,12 @@ struct AddEventView: View {
                 .foregroundColor(.primary)
             }
 
+            Section(header: Text("表示形式")) {
+                Toggle("時間を表示", isOn: $store.event.displayFormat.showHours)
+                Toggle("分を表示", isOn: $store.event.displayFormat.showMinutes)
+                Toggle("秒を表示", isOn: $store.event.displayFormat.showSeconds)
+            }
+
             Section(header: Text("メモ")) {
                 if #available(iOS 16.0, *) {
                     TextEditor(text: $store.event.note)
