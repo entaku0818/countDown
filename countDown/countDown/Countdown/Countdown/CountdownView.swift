@@ -7,37 +7,40 @@ struct CountdownView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                List {
-                    ForEach(store.filteredEvents) { event in
-                        NavigationLink {
-                            EventDetailView(
-                                event: event,
-                                onEditTapped: { event in
-                                    store.send(.eventTapped(event))
-                                }
-                            )
-                        } label: {
-                            EventRow(event: event)
-                        }
-                        .swipeActions {
-                            Button {
-                                store.send(.eventTapped(event))
+                ScrollView {
+                    LazyVStack(spacing: 12) {
+                        ForEach(store.filteredEvents) { event in
+                            NavigationLink {
+                                EventDetailView(
+                                    event: event,
+                                    onEditTapped: { event in
+                                        store.send(.eventTapped(event))
+                                    }
+                                )
                             } label: {
-                                Label("編集", systemImage: "pencil")
+                                EventRow(event: event)
                             }
-                            .tint(.blue)
-
-                            Button(role: .destructive) {
-                                if let index = store.events.firstIndex(where: { $0.id == event.id }) {
-                                    store.send(.deleteEvent(IndexSet(integer: index)))
+                            .buttonStyle(PlainButtonStyle())
+                            .contextMenu {
+                                Button {
+                                    store.send(.eventTapped(event))
+                                } label: {
+                                    Label("編集", systemImage: "pencil")
                                 }
-                            } label: {
-                                Label("削除", systemImage: "trash")
+
+                                Button(role: .destructive) {
+                                    if let index = store.events.firstIndex(where: { $0.id == event.id }) {
+                                        store.send(.deleteEvent(IndexSet(integer: index)))
+                                    }
+                                } label: {
+                                    Label("削除", systemImage: "trash")
+                                }
                             }
                         }
                     }
+                    .padding(.horizontal)
+                    .padding(.top, 8)
                 }
-                .listStyle(PlainListStyle())
 
                 // バナー広告の表示
                 AdmobBannerView()

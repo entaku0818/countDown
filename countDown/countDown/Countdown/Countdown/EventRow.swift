@@ -4,26 +4,49 @@ struct EventRow: View {
     var event: Event
 
     var body: some View {
-        HStack(spacing: 12) {
-            // 画像表示
+        ZStack(alignment: .bottomLeading) {
+            // 背景画像
             eventImageView
-                .frame(width: 50, height: 50)
+                .frame(height: 120)
+                .frame(maxWidth: .infinity)
+                .clipped()
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(event.title)
-                    .font(.headline)
-                Text(event.date.formatted(date: .long, time: .omitted))
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+            // グラデーションオーバーレイ
+            LinearGradient(
+                gradient: Gradient(colors: [.clear, .black.opacity(0.7)]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(height: 120)
+
+            // イベント情報
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(event.title)
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    Text(event.date.formatted(date: .abbreviated, time: .omitted))
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.8))
+                }
+
+                Spacer()
+
+                // カウントダウン表示
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(countdownText)
+                        .font(.title2)
+                        .bold()
+                        .foregroundColor(.white)
+                    Text(countdownLabel)
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.8))
+                }
             }
-
-            Spacer()
-
-            VStack(alignment: .trailing, spacing: 2) {
-                CountdownDisplay(event: event)
-            }
+            .padding(12)
         }
-        .padding(.vertical, 8)
+        .background(Color(stringValue: event.color))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     @ViewBuilder
@@ -33,15 +56,34 @@ struct EventRow: View {
             Image(uiImage: uiImage)
                 .resizable()
                 .scaledToFill()
-                .frame(width: 50, height: 50)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-        } else if let imageName = event.imageName {
-            EventImages.image(for: imageName, size: 50)
+        } else if let imageName = event.imageName,
+                  let uiImage = UIImage(named: "event_\(imageName)") {
+            Image(uiImage: uiImage)
+                .resizable()
+                .scaledToFill()
         } else {
-            // 画像がない場合は色付きの四角
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(stringValue: event.color))
-                .frame(width: 50, height: 50)
+            // 画像がない場合は色のみ
+            Color(stringValue: event.color)
         }
     }
-} 
+
+    private var countdownText: String {
+        if event.isToday {
+            return "今日"
+        } else if event.isPast {
+            return "\(event.daysPassed)日"
+        } else {
+            return "\(event.daysRemaining)日"
+        }
+    }
+
+    private var countdownLabel: String {
+        if event.isToday {
+            return ""
+        } else if event.isPast {
+            return "経過"
+        } else {
+            return "後"
+        }
+    }
+}
