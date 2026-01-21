@@ -9,14 +9,17 @@ struct EventDetailView: View {
         List {
             Section {
                 VStack(alignment: .center, spacing: 16) {
+                    // 画像表示
+                    eventImageView
+
                     CountdownDisplay(event: event)
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding(.vertical)
-                    
+
                     Text(event.title)
                         .font(.title)
                         .bold()
-                    
+
                     if !event.note.isEmpty {
                         Text(event.note)
                             .font(.body)
@@ -74,6 +77,22 @@ struct EventDetailView: View {
                     Image(systemName: "pencil")
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private var eventImageView: some View {
+        if let imageData = event.customImageData,
+           let uiImage = UIImage(data: imageData) {
+            Image(uiImage: uiImage)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 120, height: 120)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+        } else if let imageName = event.imageName {
+            EventImages.image(for: imageName, size: 120)
+        } else {
+            EmptyView()
         }
     }
 }
