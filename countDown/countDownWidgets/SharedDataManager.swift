@@ -1,4 +1,5 @@
 import Foundation
+import AppIntents
 
 /// App Groups を使用してメインアプリとウィジェット間でデータを共有するマネージャー
 struct SharedDataManager {
@@ -87,5 +88,82 @@ struct WidgetEvent: Codable, Identifiable, Equatable {
     /// 7日以内かどうか
     var isWithinSevenDays: Bool {
         return daysRemaining >= 0 && daysRemaining < 7
+    }
+}
+
+// MARK: - AppIntents Entity
+/// AppIntentsで使用するイベントエンティティ
+struct EventEntity: AppEntity {
+    var id: UUID
+    var title: String
+    var date: Date
+    var color: String
+
+    static var typeDisplayRepresentation: TypeDisplayRepresentation = "イベント"
+
+    var displayRepresentation: DisplayRepresentation {
+        let daysRemaining = self.daysRemaining
+        let subtitle: String
+        if daysRemaining < 0 {
+            subtitle = "\(-daysRemaining)日経過"
+        } else if daysRemaining == 0 {
+            subtitle = "今日"
+        } else {
+            subtitle = "あと\(daysRemaining)日"
+        }
+        return DisplayRepresentation(title: "\(title)", subtitle: "\(subtitle)")
+    }
+
+    var daysRemaining: Int {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.day], from: calendar.startOfDay(for: Date()), to: calendar.startOfDay(for: date))
+        return components.day ?? 0
+    }
+
+    static var defaultQuery = EventEntityQuery()
+
+    init(id: UUID, title: String, date: Date, color: String) {
+        self.id = id
+        self.title = title
+        self.date = date
+        self.color = color
+    }
+
+    init(from event: WidgetEvent) {
+        self.id = event.id
+        self.title = event.title
+        self.date = event.date
+        self.color = event.color
+    }
+
+    func toWidgetEvent() -> WidgetEvent {
+        WidgetEvent(id: id, title: title, date: date, color: color)
+    }
+}
+
+/// イベント検索クエリ
+struct EventEntityQuery: EntityQuery {
+    func entities(for identifiers: [UUID]) async throws -> [EventEntity] {
+        let allEvents = SharedDataManager.loadEvents()
+        return allEvents
+            .filter { identifiers.contains($0.id) }
+            .map { EventEntity(from: $0) }
+    }
+
+    func suggestedEntities() async throws -> [EventEntity] {
+        let allEvents = SharedDataManager.loadEvents()
+        return allEvents
+            .sorted { $0.date < $1.date }
+            .map { EventEntity(from: $0) }
+    }
+
+    func defaultResult() async -> EventEntity? {
+        let allEvents = SharedDataManager.loadEvents()
+        // 最も近い未来のイベントをデフォルトに
+        return allEvents
+            .filter { $0.date >= Date() }
+            .sorted { $0.date < $1.date }
+            .first
+            .map { EventEntity(from: $0) }
     }
 }

@@ -35,9 +35,12 @@ struct AddEventFeature {
         var mode: Mode = .add
         var showingSuggestions: Bool = false
         var isEventTitleEmpty: Bool = true
-        
+
         // 通知設定の編集状態を追加
         @Presents var notificationSettings: NotificationSettingsState?
+
+        // 画像選択の状態
+        var showingImagePicker: Bool = false
     }
     
     enum Action: BindableAction {
@@ -48,7 +51,13 @@ struct AddEventFeature {
         case toggleSuggestions
         case selectSuggestion(String)
         case delegate(Delegate)
-        
+
+        // 画像選択関連のアクション
+        case selectImageTapped
+        case selectTemplateImage(String?)
+        case selectCustomImage(Data)
+        case dismissImagePicker
+
         // 通知設定関連のアクションを追加
         case notificationSettings(PresentationAction<NotificationSettingsReducer.Action>)
 
@@ -90,7 +99,27 @@ struct AddEventFeature {
                 state.showingSuggestions = false
                 state.isEventTitleEmpty = false
                 return .none
-                
+
+            case .selectImageTapped:
+                state.showingImagePicker = true
+                return .none
+
+            case let .selectTemplateImage(imageName):
+                state.event.imageName = imageName
+                state.event.customImageData = nil
+                state.showingImagePicker = false
+                return .none
+
+            case let .selectCustomImage(imageData):
+                state.event.customImageData = imageData
+                state.event.imageName = nil
+                state.showingImagePicker = false
+                return .none
+
+            case .dismissImagePicker:
+                state.showingImagePicker = false
+                return .none
+
             case .editNotificationSettingsTapped:
                 // 通知設定画面を表示
                 state.notificationSettings = NotificationSettingsState(

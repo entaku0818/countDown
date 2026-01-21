@@ -14,6 +14,9 @@ struct ConfigurationAppIntent: WidgetConfigurationIntent {
     static var title: LocalizedStringResource = "カウントダウン設定"
     static var description = IntentDescription("表示するイベントを選択します")
 
+    @Parameter(title: "特定のイベントを表示")
+    var selectedEvent: EventEntity?
+
     @Parameter(title: "表示件数", default: 3)
     var displayCount: Int
 }
@@ -34,24 +37,30 @@ struct CountdownTimelineProvider: AppIntentTimelineProvider {
     }
 
     func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> CountdownEntry {
-        let events = SharedDataManager.loadEvents()
-        return CountdownEntry(date: Date(), events: Array(events.prefix(configuration.displayCount)), configuration: configuration)
+        let events = getEventsForConfiguration(configuration)
+        return CountdownEntry(date: Date(), events: events, configuration: configuration)
     }
 
     func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<CountdownEntry> {
-        var events = SharedDataManager.loadEvents()
-
-        // 日付でソート（近い順）
-        events.sort { $0.date < $1.date }
-
-        // 表示件数を制限
-        let displayEvents = Array(events.prefix(configuration.displayCount))
+        let displayEvents = getEventsForConfiguration(configuration)
 
         let entry = CountdownEntry(date: Date(), events: displayEvents, configuration: configuration)
 
         // 1時間ごとに更新
         let nextUpdate = Calendar.current.date(byAdding: .hour, value: 1, to: Date())!
         return Timeline(entries: [entry], policy: .after(nextUpdate))
+    }
+
+    private func getEventsForConfiguration(_ configuration: ConfigurationAppIntent) -> [WidgetEvent] {
+        // 特定のイベントが選択されている場合はそれだけを表示
+        if let selectedEvent = configuration.selectedEvent {
+            return [selectedEvent.toWidgetEvent()]
+        }
+
+        // それ以外は全イベントから表示件数分を取得
+        var events = SharedDataManager.loadEvents()
+        events.sort { $0.date < $1.date }
+        return Array(events.prefix(configuration.displayCount))
     }
 }
 

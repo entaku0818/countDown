@@ -7,10 +7,12 @@ struct Event: Equatable, Identifiable, Codable {
     var color: String
     var note: String
     var displayFormat: DisplayFormat
-    
+    var imageName: String?  // テンプレート画像名
+    var customImageData: Data?  // カスタム画像データ
+
     // 通知設定を追加
     var notificationSettings: [NotificationSettings]
-    
+
     init(
         id: UUID = UUID(),
         title: String,
@@ -18,6 +20,8 @@ struct Event: Equatable, Identifiable, Codable {
         color: String = "blue",
         note: String = "",
         displayFormat: DisplayFormat = DisplayFormat(),
+        imageName: String? = nil,
+        customImageData: Data? = nil,
         notificationSettings: [NotificationSettings] = []
     ) {
         self.id = id
@@ -26,13 +30,20 @@ struct Event: Equatable, Identifiable, Codable {
         self.color = color
         self.note = note
         self.displayFormat = displayFormat
-        
+        self.imageName = imageName
+        self.customImageData = customImageData
+
         // 通知設定が空の場合は、デフォルトの通知設定を作成
         if notificationSettings.isEmpty {
             self.notificationSettings = [NotificationSettings(eventId: id)]
         } else {
             self.notificationSettings = notificationSettings
         }
+    }
+
+    /// 画像があるかどうか
+    var hasImage: Bool {
+        imageName != nil || customImageData != nil
     }
 
     var daysRemaining: Int {
@@ -115,19 +126,25 @@ struct Event: Equatable, Identifiable, Codable {
     // デコーダのための初期化処理（旧バージョンとの互換性のため）
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        
+
         id = try container.decode(UUID.self, forKey: .id)
         title = try container.decode(String.self, forKey: .title)
         date = try container.decode(Date.self, forKey: .date)
         color = try container.decode(String.self, forKey: .color)
         note = try container.decode(String.self, forKey: .note)
-        
+
         // displayFormatが存在しない古いデータの場合はデフォルト値を使用
         displayFormat = try container.decodeIfPresent(DisplayFormat.self, forKey: .displayFormat) ?? DisplayFormat()
-        
+
+        // imageNameが存在しない古いデータの場合はnil
+        imageName = try container.decodeIfPresent(String.self, forKey: .imageName)
+
+        // customImageDataが存在しない古いデータの場合はnil
+        customImageData = try container.decodeIfPresent(Data.self, forKey: .customImageData)
+
         // notificationSettingsが存在しない古いデータの場合は空の配列を使用し、後でデフォルト設定を追加
         let decodedSettings = try container.decodeIfPresent([NotificationSettings].self, forKey: .notificationSettings) ?? []
-        
+
         if decodedSettings.isEmpty {
             notificationSettings = [NotificationSettings(eventId: id)]
         } else {

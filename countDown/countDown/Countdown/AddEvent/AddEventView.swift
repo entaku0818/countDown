@@ -101,7 +101,44 @@ struct AddEventView: View {
                     .padding(.vertical, 8)
                 }
             }
-            
+
+            Section(header: Text("画像")) {
+                Button {
+                    store.send(.selectImageTapped)
+                } label: {
+                    HStack {
+                        // 現在の画像プレビュー
+                        if let imageData = store.event.customImageData,
+                           let uiImage = UIImage(data: imageData) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 50, height: 50)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        } else if let imageName = store.event.imageName {
+                            EventImages.image(for: imageName, size: 50)
+                        } else {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(Color.gray.opacity(0.1))
+                                    .frame(width: 50, height: 50)
+                                Image(systemName: "photo")
+                                    .foregroundColor(.gray)
+                            }
+                        }
+
+                        Text(store.event.hasImage ? "画像を変更" : "画像を選択")
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                }
+                .foregroundColor(.primary)
+            }
+
             Section(header: Text("メモ")) {
                 if #available(iOS 16.0, *) {
                     TextEditor(text: $store.event.note)
@@ -129,6 +166,19 @@ struct AddEventView: View {
             NavigationView {
                 NotificationSettingsSheetView(store: store)
             }
+        }
+        .sheet(isPresented: $store.showingImagePicker) {
+            ImagePickerView(
+                selectedImage: Binding(
+                    get: { store.event.imageName },
+                    set: { store.send(.selectTemplateImage($0)) }
+                ),
+                onCustomImageSelected: { image in
+                    if let data = image.jpegData(compressionQuality: 0.8) {
+                        store.send(.selectCustomImage(data))
+                    }
+                }
+            )
         }
     }
 }
