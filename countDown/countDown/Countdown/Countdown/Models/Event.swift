@@ -160,15 +160,31 @@ struct Event: Equatable, Identifiable, Codable {
 }
 
 struct DisplayFormat: Equatable, Codable {
-    var showDays: Bool = true
-    var showHours: Bool = false
-    var showMinutes: Bool = false
-    var showSeconds: Bool = false
+    var timeDisplayMode: TimeDisplayMode = .daysOnly
     var style: CountdownStyle = .days
+
+    enum TimeDisplayMode: String, CaseIterable, Codable {
+        case daysOnly = "日数のみ"
+        case daysAndHours = "日+時間"
+        case daysHoursMinutes = "日+時+分"
+        case full = "全部表示"
+    }
 
     enum CountdownStyle: String, CaseIterable, Codable {
         case days = "日数"
         case progress = "進捗バー"
         case circle = "サークル"
+    }
+
+    // 後方互換性のためのデコード
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        timeDisplayMode = try container.decodeIfPresent(TimeDisplayMode.self, forKey: .timeDisplayMode) ?? .daysOnly
+        style = try container.decodeIfPresent(CountdownStyle.self, forKey: .style) ?? .days
+    }
+
+    init(timeDisplayMode: TimeDisplayMode = .daysOnly, style: CountdownStyle = .days) {
+        self.timeDisplayMode = timeDisplayMode
+        self.style = style
     }
 }

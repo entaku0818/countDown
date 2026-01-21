@@ -13,7 +13,6 @@ struct DaysCountdownView: View {
 
     var body: some View {
         VStack(alignment: .trailing, spacing: 4) {
-            // メイン表示（日数）
             if event.isToday {
                 Text("今日")
                     .font(.title)
@@ -24,40 +23,57 @@ struct DaysCountdownView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             } else {
+                // フォーマットに応じた表示
                 HStack(alignment: .lastTextBaseline, spacing: 2) {
-                    Text(countdownText)
+                    Text(formattedCountdown)
                         .font(.title)
                         .bold()
                         .foregroundColor(countdownColor)
 
-                    Text(countdownLabel)
+                    Text(countdownSuffix)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
             }
+        }
+    }
 
-            // 詳細時間表示（設定に基づく）
-            if shouldShowDetailedTime {
-                Text(detailedTimeText)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+    /// フォーマットに応じたカウントダウンテキスト
+    private var formattedCountdown: String {
+        let mode = event.displayFormat.timeDisplayMode
+
+        if event.isPast {
+            // 過去のイベント
+            switch mode {
+            case .daysOnly:
+                return "\(event.daysPassed)日"
+            case .daysAndHours:
+                return "\(event.daysPassed)日 \(abs(event.hoursRemaining))時間"
+            case .daysHoursMinutes:
+                return "\(event.daysPassed)日 \(abs(event.hoursRemaining))時間 \(abs(event.minutesRemaining))分"
+            case .full:
+                return "\(event.daysPassed)日 \(abs(event.hoursRemaining))時間 \(abs(event.minutesRemaining))分 \(abs(event.secondsRemaining))秒"
+            }
+        } else {
+            // 未来のイベント
+            switch mode {
+            case .daysOnly:
+                return "\(event.daysRemaining)日"
+            case .daysAndHours:
+                return "\(event.daysRemaining)日 \(event.hoursRemaining)時間"
+            case .daysHoursMinutes:
+                return "\(event.daysRemaining)日 \(event.hoursRemaining)時間 \(event.minutesRemaining)分"
+            case .full:
+                return "\(event.daysRemaining)日 \(event.hoursRemaining)時間 \(event.minutesRemaining)分 \(event.secondsRemaining)秒"
             }
         }
     }
 
-    private var countdownText: String {
+    private var countdownSuffix: String {
         if event.isPast {
-            return "\(event.daysPassed)"
+            return "経過"
         } else {
-            return "\(event.daysRemaining)"
-        }
-    }
-
-    private var countdownLabel: String {
-        if event.isPast {
-            return "日経過"
-        } else {
-            return "日後"
+            return "後"
         }
     }
 
@@ -67,33 +83,5 @@ struct DaysCountdownView: View {
         } else {
             return Color(stringValue: event.color)
         }
-    }
-
-    /// 詳細時間を表示するかどうか
-    private var shouldShowDetailedTime: Bool {
-        let format = event.displayFormat
-        // 過去のイベントでなく、時間・分・秒のいずれかが有効な場合
-        if event.isPast || event.isToday {
-            return false
-        }
-        return format.showHours || format.showMinutes || format.showSeconds
-    }
-
-    /// 詳細時間のテキスト
-    private var detailedTimeText: String {
-        let format = event.displayFormat
-        var parts: [String] = []
-
-        if format.showHours {
-            parts.append("\(event.hoursRemaining)時間")
-        }
-        if format.showMinutes {
-            parts.append("\(event.minutesRemaining)分")
-        }
-        if format.showSeconds {
-            parts.append("\(event.secondsRemaining)秒")
-        }
-
-        return parts.joined(separator: " ")
     }
 }
