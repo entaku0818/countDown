@@ -2,6 +2,9 @@ import SwiftUI
 
 struct EventRow: View {
     var event: Event
+    @State private var now = Date()
+
+    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
@@ -34,19 +37,30 @@ struct EventRow: View {
 
                 // カウントダウン表示
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text(countdownText)
-                        .font(.title2)
+                    Text(formattedCountdown)
+                        .font(.subheadline)
                         .bold()
                         .foregroundColor(.white)
-                    Text(countdownLabel)
-                        .font(.caption)
+
+                    // 通知アイコン
+                    if event.hasEnabledNotifications {
+                        HStack(spacing: 4) {
+                            Image(systemName: "bell.fill")
+                                .font(.caption2)
+                            Text(event.notificationTimingText)
+                                .font(.caption2)
+                        }
                         .foregroundColor(.white.opacity(0.8))
+                    }
                 }
             }
             .padding(12)
         }
         .background(Color(stringValue: event.color))
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        .onReceive(timer) { _ in
+            now = Date()
+        }
     }
 
     @ViewBuilder
@@ -67,23 +81,40 @@ struct EventRow: View {
         }
     }
 
-    private var countdownText: String {
-        if event.isToday {
-            return "今日"
-        } else if event.isPast {
-            return "\(event.daysPassed)日"
-        } else {
-            return "\(event.daysRemaining)日"
-        }
-    }
+    /// リアルタイム計算用のカウントダウンテキスト
+    private var formattedCountdown: String {
+        let calendar = Calendar.current
 
-    private var countdownLabel: String {
-        if event.isToday {
-            return ""
-        } else if event.isPast {
-            return "経過"
-        } else {
-            return "後"
+        if calendar.isDateInToday(event.date) {
+            return "今日"
+        }
+
+        let isPast = now > event.date
+        let mode = event.displayFormat.timeDisplayMode
+
+        // 各コンポーネントを計算
+        let components = calendar.dateComponents(
+            [.day, .hour, .minute, .second],
+            from: isPast ? event.date : now,
+            to: isPast ? now : event.date
+        )
+
+        let days = components.day ?? 0
+        let hours = components.hour ?? 0
+        let minutes = components.minute ?? 0
+        let seconds = components.second ?? 0
+
+        let suffix = isPast ? "経過" : "後"
+
+        switch mode {
+        case .daysOnly:
+            return "\(days)日\(suffix)"
+        case .daysAndHours:
+            return "\(days)日 \(hours)時間\(suffix)"
+        case .daysHoursMinutes:
+            return "\(days)日 \(hours)時間 \(minutes)分\(suffix)"
+        case .full:
+            return "\(days)日 \(hours)時間 \(minutes)分 \(seconds)秒\(suffix)"
         }
     }
 }
