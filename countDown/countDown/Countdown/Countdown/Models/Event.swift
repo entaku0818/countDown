@@ -59,17 +59,23 @@ struct Event: Equatable, Identifiable, Codable {
         return components.day ?? 0
     }
 
+    /// 詳細表示用の日数（実際の時間差から計算）
+    var daysRemainingDetailed: Int {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.day], from: Date(), to: date)
+        return components.day ?? 0
+    }
+
     var hoursRemaining: Int {
         let calendar = Calendar.current
-        let components = calendar.dateComponents([.day, .hour, .minute], from: Date(), to: date)
-        let totalHours = (components.day ?? 0) * 24 + (components.hour ?? 0)
-        return components.hour ?? 0
+        let components = calendar.dateComponents([.hour], from: Date(), to: date)
+        return (components.hour ?? 0) % 24
     }
-    
+
     var minutesRemaining: Int {
         let calendar = Calendar.current
-        let components = calendar.dateComponents([.day, .hour, .minute], from: Date(), to: date)
-        return components.minute ?? 0
+        let components = calendar.dateComponents([.minute], from: Date(), to: date)
+        return (components.minute ?? 0) % 60
     }
 
     var secondsRemaining: Int {

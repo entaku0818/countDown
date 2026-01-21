@@ -43,28 +43,38 @@ struct DaysCountdownView: View {
         let mode = event.displayFormat.timeDisplayMode
 
         if event.isPast {
-            // 過去のイベント
+            // 過去のイベント（詳細表示用の日数を使用）
+            let days = abs(event.daysRemainingDetailed)
+            let hours = abs(event.hoursRemaining)
+            let minutes = abs(event.minutesRemaining)
+            let seconds = abs(event.secondsRemaining)
+
             switch mode {
             case .daysOnly:
                 return "\(event.daysPassed)日"
             case .daysAndHours:
-                return "\(event.daysPassed)日 \(abs(event.hoursRemaining))時間"
+                return "\(days)日 \(hours)時間"
             case .daysHoursMinutes:
-                return "\(event.daysPassed)日 \(abs(event.hoursRemaining))時間 \(abs(event.minutesRemaining))分"
+                return "\(days)日 \(hours)時間 \(minutes)分"
             case .full:
-                return "\(event.daysPassed)日 \(abs(event.hoursRemaining))時間 \(abs(event.minutesRemaining))分 \(abs(event.secondsRemaining))秒"
+                return "\(days)日 \(hours)時間 \(minutes)分 \(seconds)秒"
             }
         } else {
-            // 未来のイベント
+            // 未来のイベント（詳細表示用の日数を使用）
+            let days = event.daysRemainingDetailed
+            let hours = event.hoursRemaining
+            let minutes = event.minutesRemaining
+            let seconds = event.secondsRemaining
+
             switch mode {
             case .daysOnly:
                 return "\(event.daysRemaining)日"
             case .daysAndHours:
-                return "\(event.daysRemaining)日 \(event.hoursRemaining)時間"
+                return "\(days)日 \(hours)時間"
             case .daysHoursMinutes:
-                return "\(event.daysRemaining)日 \(event.hoursRemaining)時間 \(event.minutesRemaining)分"
+                return "\(days)日 \(hours)時間 \(minutes)分"
             case .full:
-                return "\(event.daysRemaining)日 \(event.hoursRemaining)時間 \(event.minutesRemaining)分 \(event.secondsRemaining)秒"
+                return "\(days)日 \(hours)時間 \(minutes)分 \(seconds)秒"
             }
         }
     }
