@@ -1,6 +1,13 @@
 import Foundation
 
 struct Event: Equatable, Identifiable, Codable {
+    enum RepeatType: String, CaseIterable, Codable {
+        case none = "繰り返しなし"
+        case weekly = "毎週"
+        case monthly = "毎月"
+        case yearly = "毎年"
+    }
+
     var id: UUID
     var title: String
     var date: Date
@@ -9,6 +16,7 @@ struct Event: Equatable, Identifiable, Codable {
     var displayFormat: DisplayFormat
     var imageName: String?  // テンプレート画像名
     var customImageData: Data?  // カスタム画像データ
+    var repeatType: RepeatType
 
     // 通知設定を追加
     var notificationSettings: [NotificationSettings]
@@ -22,6 +30,7 @@ struct Event: Equatable, Identifiable, Codable {
         displayFormat: DisplayFormat = DisplayFormat(),
         imageName: String? = nil,
         customImageData: Data? = nil,
+        repeatType: RepeatType = .none,
         notificationSettings: [NotificationSettings] = []
     ) {
         self.id = id
@@ -32,6 +41,7 @@ struct Event: Equatable, Identifiable, Codable {
         self.displayFormat = displayFormat
         self.imageName = imageName
         self.customImageData = customImageData
+        self.repeatType = repeatType
 
         // 通知設定が空の場合は、デフォルトの通知設定を作成
         if notificationSettings.isEmpty {
@@ -84,6 +94,29 @@ struct Event: Equatable, Identifiable, Codable {
         return (components.second ?? 0) % 60
     }
     
+    /// 繰り返し設定に基づく次回の日付（繰り返しなしの場合は元の日付）
+    var nextOccurrenceDate: Date {
+        guard repeatType != .none, date < Date() else { return date }
+        let calendar = Calendar.current
+        var checkDate = date
+        let component: Calendar.Component
+        switch repeatType {
+        case .none: return date
+        case .weekly: component = .weekOfYear
+        case .monthly: component = .month
+        case .yearly: component = .year
+        }
+        while checkDate < Date() {
+            checkDate = calendar.date(byAdding: component, value: 1, to: checkDate) ?? checkDate
+        }
+        return checkDate
+    }
+
+    /// ソート・表示に使う実効日付
+    var displayDate: Date {
+        repeatType != .none ? nextOccurrenceDate : date
+    }
+
     var isWithinSevenDays: Bool {
         return 0 <= daysRemaining && daysRemaining < 7
     }
@@ -153,6 +186,9 @@ struct Event: Equatable, Identifiable, Codable {
 
         // customImageDataが存在しない古いデータの場合はnil
         customImageData = try container.decodeIfPresent(Data.self, forKey: .customImageData)
+
+        // repeatTypeが存在しない古いデータの場合はデフォルト値を使用
+        repeatType = try container.decodeIfPresent(RepeatType.self, forKey: .repeatType) ?? .none
 
         // notificationSettingsが存在しない古いデータの場合は空の配列を使用し、後でデフォルト設定を追加
         let decodedSettings = try container.decodeIfPresent([NotificationSettings].self, forKey: .notificationSettings) ?? []

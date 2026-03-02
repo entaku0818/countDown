@@ -52,6 +52,20 @@ struct EventDetailView: View {
                     Text(event.date.formatted(date: .long, time: .omitted))
                         .foregroundColor(.secondary)
                 }
+                if event.repeatType != .none {
+                    HStack {
+                        Text("繰り返し")
+                        Spacer()
+                        Text(event.repeatType.rawValue)
+                            .foregroundColor(.secondary)
+                    }
+                    HStack {
+                        Text("次回")
+                        Spacer()
+                        Text(event.nextOccurrenceDate.formatted(date: .long, time: .omitted))
+                            .foregroundColor(.secondary)
+                    }
+                }
             }
             
             Section("表示形式") {
@@ -98,17 +112,18 @@ struct EventDetailView: View {
     /// リアルタイムカウントダウンテキスト
     private var formattedCountdown: String {
         let calendar = Calendar.current
+        let targetDate = event.displayDate
 
-        if calendar.isDateInToday(event.date) {
+        if calendar.isDateInToday(targetDate) {
             return "今日"
         }
 
-        let isPast = now > event.date
+        let isPast = now > targetDate
 
         let components = calendar.dateComponents(
             [.day, .hour, .minute, .second],
-            from: isPast ? event.date : now,
-            to: isPast ? now : event.date
+            from: isPast ? targetDate : now,
+            to: isPast ? now : targetDate
         )
 
         let days = components.day ?? 0
@@ -120,9 +135,10 @@ struct EventDetailView: View {
     }
 
     private var countdownSuffix: String {
-        if Calendar.current.isDateInToday(event.date) {
+        let targetDate = event.displayDate
+        if Calendar.current.isDateInToday(targetDate) {
             return "イベント当日"
-        } else if now > event.date {
+        } else if now > targetDate {
             return "経過"
         } else {
             return "後"

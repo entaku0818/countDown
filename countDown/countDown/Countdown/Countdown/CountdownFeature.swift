@@ -219,7 +219,7 @@ struct CountdownFeature {
 
     private func sortedEvents(_ events: [Event]) -> [Event] {
         return events.sorted { event1, event2 in
-            return event1.date < event2.date
+            return event1.displayDate < event2.displayDate
         }
     }
 }

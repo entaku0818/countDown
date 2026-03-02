@@ -25,10 +25,17 @@ struct EventRow: View {
             // イベント情報
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(event.title)
-                        .font(.headline)
-                        .foregroundColor(.white)
-                    Text(event.date.formatted(date: .abbreviated, time: .omitted))
+                    HStack(spacing: 4) {
+                        Text(event.title)
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        if event.repeatType != .none {
+                            Image(systemName: "repeat")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.8))
+                        }
+                    }
+                    Text(event.displayDate.formatted(date: .abbreviated, time: .omitted))
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.8))
                 }
@@ -84,19 +91,20 @@ struct EventRow: View {
     /// リアルタイム計算用のカウントダウンテキスト
     private var formattedCountdown: String {
         let calendar = Calendar.current
+        let targetDate = event.displayDate
 
-        if calendar.isDateInToday(event.date) {
+        if calendar.isDateInToday(targetDate) {
             return "今日"
         }
 
-        let isPast = now > event.date
+        let isPast = now > targetDate
         let mode = event.displayFormat.timeDisplayMode
 
         // 各コンポーネントを計算
         let components = calendar.dateComponents(
             [.day, .hour, .minute, .second],
-            from: isPast ? event.date : now,
-            to: isPast ? now : event.date
+            from: isPast ? targetDate : now,
+            to: isPast ? now : targetDate
         )
 
         let days = components.day ?? 0

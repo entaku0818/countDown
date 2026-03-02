@@ -178,6 +178,78 @@ struct WidgetEventTests {
     }
 }
 
+// MARK: - RepeatType Tests
+struct RepeatTypeTests {
+
+    @Test func repeatTypeNoneReturnsSameDate() async throws {
+        let futureDate = Calendar.current.date(byAdding: .day, value: 10, to: Date())!
+        let event = Event(title: "繰り返しなし", date: futureDate, repeatType: .none)
+
+        #expect(event.nextOccurrenceDate == futureDate)
+        #expect(event.displayDate == futureDate)
+    }
+
+    @Test func repeatTypeNoneForPastEventReturnsPastDate() async throws {
+        let pastDate = Calendar.current.date(byAdding: .day, value: -5, to: Date())!
+        let event = Event(title: "繰り返しなし過去", date: pastDate, repeatType: .none)
+
+        #expect(event.nextOccurrenceDate == pastDate)
+        #expect(event.displayDate == pastDate)
+    }
+
+    @Test func repeatTypeYearlyReturnsFutureDate() async throws {
+        let pastDate = Calendar.current.date(byAdding: .year, value: -2, to: Date())!
+        let event = Event(title: "毎年イベント", date: pastDate, repeatType: .yearly)
+
+        let nextDate = event.nextOccurrenceDate
+        #expect(nextDate > Date())
+        #expect(event.displayDate == nextDate)
+    }
+
+    @Test func repeatTypeMonthlyReturnsFutureDate() async throws {
+        let pastDate = Calendar.current.date(byAdding: .month, value: -3, to: Date())!
+        let event = Event(title: "毎月イベント", date: pastDate, repeatType: .monthly)
+
+        let nextDate = event.nextOccurrenceDate
+        #expect(nextDate > Date())
+    }
+
+    @Test func repeatTypeWeeklyReturnsFutureDate() async throws {
+        let pastDate = Calendar.current.date(byAdding: .weekOfYear, value: -2, to: Date())!
+        let event = Event(title: "毎週イベント", date: pastDate, repeatType: .weekly)
+
+        let nextDate = event.nextOccurrenceDate
+        #expect(nextDate > Date())
+    }
+
+    @Test func repeatTypeYearlyPreservesMonthAndDay() async throws {
+        // 誕生日など月日が保持されることを確認
+        let pastDate = Calendar.current.date(byAdding: .year, value: -1, to: Date())!
+        let event = Event(title: "誕生日", date: pastDate, repeatType: .yearly)
+
+        let nextDate = event.nextOccurrenceDate
+        let pastComponents = Calendar.current.dateComponents([.month, .day], from: pastDate)
+        let nextComponents = Calendar.current.dateComponents([.month, .day], from: nextDate)
+
+        #expect(pastComponents.month == nextComponents.month)
+        #expect(pastComponents.day == nextComponents.day)
+    }
+
+    @Test func repeatTypeEncodeDecode() async throws {
+        let event = Event(title: "繰り返しテスト", date: Date(), repeatType: .yearly)
+
+        let encoded = try JSONEncoder().encode(event)
+        let decoded = try JSONDecoder().decode(Event.self, from: encoded)
+
+        #expect(decoded.repeatType == .yearly)
+    }
+
+    @Test func repeatTypeDefaultIsNone() async throws {
+        let event = Event(title: "デフォルト", date: Date())
+        #expect(event.repeatType == .none)
+    }
+}
+
 // MARK: - Event Codable Tests
 struct EventCodableTests {
 

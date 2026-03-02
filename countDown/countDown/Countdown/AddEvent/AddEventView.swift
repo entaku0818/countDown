@@ -61,6 +61,12 @@ struct AddEventView: View {
                     selection: $store.event.date,
                     displayedComponents: .date
                 )
+
+                Picker("繰り返し", selection: $store.event.repeatType) {
+                    ForEach(Event.RepeatType.allCases, id: \.self) { type in
+                        Text(type.rawValue).tag(type)
+                    }
+                }
             }
             
             Section(header: Text("通知")) {
