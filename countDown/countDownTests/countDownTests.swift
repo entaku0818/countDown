@@ -248,6 +248,80 @@ struct RepeatTypeTests {
         let event = Event(title: "デフォルト", date: Date())
         #expect(event.repeatType == .none)
     }
+
+    // 未来のイベントは繰り返し設定があっても日付が進まない
+    @Test func repeatTypeFutureEventNotAdvanced() async throws {
+        let futureDate = Calendar.current.date(byAdding: .day, value: 30, to: Date())!
+        let event = Event(title: "未来の毎年イベント", date: futureDate, repeatType: .yearly)
+
+        #expect(event.nextOccurrenceDate == futureDate)
+        #expect(event.displayDate == futureDate)
+    }
+
+    // 毎週：元の曜日が保持される
+    @Test func repeatTypeWeeklyPreservesDayOfWeek() async throws {
+        let pastDate = Calendar.current.date(byAdding: .weekOfYear, value: -3, to: Date())!
+        let event = Event(title: "毎週イベント", date: pastDate, repeatType: .weekly)
+
+        let nextDate = event.nextOccurrenceDate
+        let originalWeekday = Calendar.current.component(.weekday, from: pastDate)
+        let nextWeekday = Calendar.current.component(.weekday, from: nextDate)
+
+        #expect(originalWeekday == nextWeekday)
+    }
+
+    // 毎月：元の日付（何日か）が保持される
+    @Test func repeatTypeMonthlyPreservesDayOfMonth() async throws {
+        let pastDate = Calendar.current.date(byAdding: .month, value: -5, to: Date())!
+        let event = Event(title: "毎月イベント", date: pastDate, repeatType: .monthly)
+
+        let nextDate = event.nextOccurrenceDate
+        let originalDay = Calendar.current.component(.day, from: pastDate)
+        let nextDay = Calendar.current.component(.day, from: nextDate)
+
+        #expect(originalDay == nextDay)
+    }
+
+    // 旧フォーマット（repeatTypeなし）からのデコード互換性
+    @Test func repeatTypeBackwardCompatibilityDecode() async throws {
+        let jsonWithoutRepeatType = """
+        {
+            "id": "00000000-0000-0000-0000-000000000001",
+            "title": "旧データ",
+            "date": 1000000,
+            "color": "blue",
+            "note": "",
+            "displayFormat": {"timeDisplayMode": "日数のみ", "style": "日数"},
+            "notificationSettings": []
+        }
+        """.data(using: .utf8)!
+
+        let decoded = try JSONDecoder().decode(Event.self, from: jsonWithoutRepeatType)
+        #expect(decoded.repeatType == .none)
+    }
+
+    // displayDate のソート：繰り返しイベントが正しい順序になる
+    @Test func repeatTypeDisplayDateSorting() async throws {
+        let calendar = Calendar.current
+
+        // 1年前の誕生日（毎年繰り返し）→ 次回は未来
+        let birthdayBase = calendar.date(byAdding: .year, value: -1, to: Date())!
+        let birthdayEvent = Event(title: "誕生日", date: birthdayBase, repeatType: .yearly)
+
+        // 3日後のイベント（繰り返しなし）
+        let soonDate = calendar.date(byAdding: .day, value: 3, to: Date())!
+        let soonEvent = Event(title: "近いイベント", date: soonDate, repeatType: .none)
+
+        // 30日後のイベント（繰り返しなし）
+        let farDate = calendar.date(byAdding: .day, value: 30, to: Date())!
+        let farEvent = Event(title: "遠いイベント", date: farDate, repeatType: .none)
+
+        let events = [farEvent, birthdayEvent, soonEvent]
+        let sorted = events.sorted { $0.displayDate < $1.displayDate }
+
+        // soonEvent(3日後) < birthdayEvent(次回) or farEvent(30日後) の順になるはず
+        #expect(sorted[0].title == "近いイベント")
+    }
 }
 
 // MARK: - Event Codable Tests
