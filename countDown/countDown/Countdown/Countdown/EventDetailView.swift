@@ -33,9 +33,15 @@ struct EventDetailView: View {
                         .bold()
 
                     if !event.note.isEmpty {
-                        Text(event.note)
-                            .font(.body)
-                            .foregroundColor(.secondary)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("期待メモ")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text(event.note)
+                                .font(.body)
+                                .foregroundColor(.primary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
                 .padding()

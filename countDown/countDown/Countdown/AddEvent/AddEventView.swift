@@ -153,7 +153,7 @@ struct AddEventView: View {
                 }
             }
 
-            Section(header: Text("メモ")) {
+            Section(header: Text("期待メモ")) {
                 if #available(iOS 16.0, *) {
                     TextEditor(text: $store.event.note)
                         .frame(minHeight: 100)
