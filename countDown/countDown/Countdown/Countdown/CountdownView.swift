@@ -4,37 +4,72 @@ import ComposableArchitecture
 struct CountdownView: View {
     @Bindable var store: StoreOf<CountdownFeature>
 
+    @ViewBuilder
+    private func eventRow(_ event: Event) -> some View {
+        NavigationLink {
+            EventDetailView(
+                event: event,
+                onEditTapped: { event in
+                    store.send(.eventTapped(event))
+                }
+            )
+        } label: {
+            EventRow(event: event)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .contextMenu {
+            Button {
+                store.send(.eventTapped(event))
+            } label: {
+                Label("編集", systemImage: "pencil")
+            }
+
+            Button(role: .destructive) {
+                if let index = store.events.firstIndex(where: { $0.id == event.id }) {
+                    store.send(.deleteEvent(IndexSet(integer: index)))
+                }
+            } label: {
+                Label("削除", systemImage: "trash")
+            }
+        }
+    }
+
+    private var upcomingEvents: [Event] {
+        store.filteredEvents.filter { !$0.isPast || $0.repeatType != .none }
+    }
+
+    private var memoryEvents: [Event] {
+        store.filteredEvents.filter { $0.isPast && $0.repeatType == .none }
+    }
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 ScrollView {
-                    LazyVStack(spacing: 12) {
-                        ForEach(store.filteredEvents) { event in
-                            NavigationLink {
-                                EventDetailView(
-                                    event: event,
-                                    onEditTapped: { event in
-                                        store.send(.eventTapped(event))
-                                    }
-                                )
-                            } label: {
-                                EventRow(event: event)
+                    LazyVStack(spacing: 12, pinnedViews: .sectionHeaders) {
+                        // カウントダウン中のイベント
+                        Section {
+                            ForEach(upcomingEvents) { event in
+                                eventRow(event)
                             }
-                            .buttonStyle(PlainButtonStyle())
-                            .contextMenu {
-                                Button {
-                                    store.send(.eventTapped(event))
-                                } label: {
-                                    Label("編集", systemImage: "pencil")
-                                }
+                        }
 
-                                Button(role: .destructive) {
-                                    if let index = store.events.firstIndex(where: { $0.id == event.id }) {
-                                        store.send(.deleteEvent(IndexSet(integer: index)))
-                                    }
-                                } label: {
-                                    Label("削除", systemImage: "trash")
+                        // 思い出セクション
+                        if !memoryEvents.isEmpty {
+                            Section {
+                                ForEach(memoryEvents) { event in
+                                    eventRow(event)
                                 }
+                            } header: {
+                                HStack {
+                                    Image(systemName: "photo.on.rectangle.angled")
+                                    Text("思い出")
+                                        .font(.headline)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal)
+                                .padding(.vertical, 8)
+                                .background(Color(.systemBackground))
                             }
                         }
                     }
