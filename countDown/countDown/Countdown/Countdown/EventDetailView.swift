@@ -136,12 +136,15 @@ struct EventDetailView: View {
 
     private var countdownSuffix: String {
         let targetDate = event.displayDate
+        let days = Calendar.current.dateComponents([.day], from: now, to: targetDate).day ?? 0
         if Calendar.current.isDateInToday(targetDate) {
-            return "イベント当日"
+            return "今日がその日！"
         } else if now > targetDate {
-            return "経過"
+            return "あの日から"
+        } else if days <= 7 {
+            return "後、もうすぐ！"
         } else {
-            return "後"
+            return "後が楽しみ！"
         }
     }
 

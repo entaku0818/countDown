@@ -94,13 +94,11 @@ struct EventRow: View {
         let targetDate = event.displayDate
 
         if calendar.isDateInToday(targetDate) {
-            return "今日"
+            return "今日がその日！"
         }
 
         let isPast = now > targetDate
-        let mode = event.displayFormat.timeDisplayMode
 
-        // 各コンポーネントを計算
         let components = calendar.dateComponents(
             [.day, .hour, .minute, .second],
             from: isPast ? targetDate : now,
@@ -112,7 +110,14 @@ struct EventRow: View {
         let minutes = components.minute ?? 0
         let seconds = components.second ?? 0
 
-        let suffix = isPast ? "経過" : "後"
+        // 過去イベント
+        if isPast {
+            return "あの日から\(days)日"
+        }
+
+        // 未来イベント：残り日数に応じてトーンを変える
+        let mode = event.displayFormat.timeDisplayMode
+        let suffix = days <= 7 ? "後、もうすぐ！" : "後が楽しみ！"
 
         switch mode {
         case .daysOnly:
