@@ -26,6 +26,40 @@ platform :ios do
     )
   end
 
+  # Xcodeでアップロード済みのビルドを審査提出
+  desc "Submit already uploaded build for review (upload binary via Xcode first)"
+  lane :submit_build do
+    version_number = get_version_number(
+      xcodeproj: "countDown.xcodeproj",
+      target: "countDown"
+    )
+
+    deliver(
+      skip_binary_upload: true,          # バイナリはXcodeでアップロード済み
+      skip_app_version_update: false,
+      app_version: version_number,
+      skip_metadata: false,
+      skip_screenshots: true,
+      force: true,
+      ignore_language_directory_validation: true,
+      run_precheck_before_submit: false,
+      precheck_include_in_app_purchases: false,
+      submit_for_review: true,
+      automatic_release: false,
+      app_rating_config_path: "./fastlane/rating_config.json",
+      submission_information: {
+        add_id_info_uses_idfa: false,
+        export_compliance_uses_encryption: false,
+        export_compliance_platform: "ios",
+        content_rights_contains_third_party_content: false,
+        content_rights_has_rights: true
+      },
+      build_number: "latest"
+    )
+
+    UI.success("審査申請完了！")
+  end
+
   # メタデータとスクリーンショットのアップロード、審査提出
   desc "Upload metadata and screenshots to App Store Connect and submit for review"
   lane :release do
@@ -53,7 +87,6 @@ platform :ios do
       ignore_language_directory_validation: true, # 言語ディレクトリの検証を無視
       run_precheck_before_submit: true,  # 提出前の事前チェックを実行
       precheck_include_in_app_purchases: false,  # In-app purchasesのチェックをスキップ
-      price_tier: 0,                 # 無料アプリとして設定（0は無料）
       app_rating_config_path: "./fastlane/rating_config.json", # レーティング設定ファイル
       submission_information: {
         add_id_info_uses_idfa: false,  # IDFAの使用なし
@@ -61,7 +94,7 @@ platform :ios do
         export_compliance_platform: "ios",  # プラットフォームはiOS
         content_rights_contains_third_party_content: false, # サードパーティコンテンツを含まない
         content_rights_has_rights: true, # コンテンツ使用権を持っていることを確認
-        submission_comment: "初回リリース v0.1.0", # 提出時のコメント
+        submission_comment: "v0.2.0 繰り返しイベント・楽しみを待つUX改善", # 提出時のコメント
         rejection_versioning_activated: true # バージョンがリジェクトされた場合に自動的に新バージョンを作成
       }
     )
