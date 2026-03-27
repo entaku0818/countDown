@@ -13,3 +13,4 @@ countDown/fastlane/AuthKey_R2Q4FFAG8D.p8
 countDown/countDown/Config/Debug.xcconfig
 countDown/countDown/Config/Release.xcconfig
 countDown/fastlane/.env
+firebase-debug.log
