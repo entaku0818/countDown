@@ -15,6 +15,14 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 ## iOS
 
+### ios submit_build
+
+```sh
+[bundle exec] fastlane ios submit_build
+```
+
+Submit already uploaded build for review (upload binary via Xcode first)
+
 ### ios release
 
 ```sh
