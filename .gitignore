@@ -14,3 +14,6 @@ countDown/countDown/Config/Debug.xcconfig
 countDown/countDown/Config/Release.xcconfig
 countDown/fastlane/.env
 firebase-debug.log
+
+# Build artifacts
+countDown/build/
