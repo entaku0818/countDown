@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: SwiftLint
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/realm/swiftlint:0.57.0
+    steps:
+      - uses: actions/checkout@v4
+      - name: SwiftLint
+        run: swiftlint lint --reporter github-actions-logging
+
+  build-and-test:
+    name: Build & Test (iOS)
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode 16
+        run: sudo xcode-select -s "$(ls -d /Applications/Xcode_16*.app | sort -V | tail -n 1)"
+
+      # Debug/Release.xcconfig は gitignore されているため、サンプルから生成する
+      # （sample にはテスト用 AdMob ID が入っており CI ビルドにはこれで十分）
+      - name: Create xcconfig from samples
+        run: |
+          cp countDown/countDown/Config/Debug.xcconfig.sample countDown/countDown/Config/Debug.xcconfig
+          cp countDown/countDown/Config/Release.xcconfig.sample countDown/countDown/Config/Release.xcconfig
+
+      # -skipMacroValidation: TCA が swift-syntax マクロを使うため必須
+      - name: Build and run unit tests
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project countDown/countDown.xcodeproj \
+            -scheme countDown \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -skip-testing:countDownUITests \
+            -skipMacroValidation \
+            -skipPackagePluginValidation \
+            CODE_SIGNING_ALLOWED=NO | xcbeautify

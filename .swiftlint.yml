@@ -1,0 +1,22 @@
+excluded:
+  - countDown/build
+  - countDown/.build
+  - countDown/fastlane
+  - LP
+
+# 既存の型名（プロジェクト名由来の小文字始まり）は許容する
+type_name:
+  excluded:
+    - countDownApp
+    - countDownWidgetsBundle
+    - countDownWidgetsLiveActivity
+    - countDownUITests
+    - countDownUITestsLaunchTests
+
+identifier_name:
+  excluded:
+    - a
+    - b
+    - id
+    - x
+    - y
