@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 struct EventRow: View {
     var event: Event
