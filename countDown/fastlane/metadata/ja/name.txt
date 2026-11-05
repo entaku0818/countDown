@@ -1,1 +1,1 @@
-CountDown - イベントタイマー
+CountDown - 楽しみまであと何日

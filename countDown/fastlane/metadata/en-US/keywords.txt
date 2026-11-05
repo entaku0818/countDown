@@ -1,1 +1,1 @@
-countdown, timer, event, date, birthday, wedding, vacation, reminder, calendar, days left
+anniversary,birthday,vacation,holiday,lock screen,day counter,reminder,concert,baby,due date,goal

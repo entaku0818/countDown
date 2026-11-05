@@ -1,10 +1,28 @@
-CountDown is a simple and intuitive countdown timer app that helps you keep track of important events, deadlines, and special occasions.
+Enjoy the wait for the days you're looking forward to.
 
-Features:
-• Create multiple countdown timers with custom names and dates
-• Beautiful, clean interface with SwiftUI
-• Simple and easy to use
-• Notification reminders for upcoming events
-• Customizable theme
+Weddings, trips, concerts, birthdays, anniversaries, due dates —
+CountDown shows "how many days left?" at a glance, made for people who love looking forward to something.
 
-Whether you're counting down to a birthday, vacation, wedding, or any other special event, CountDown makes it easy to see exactly how much time is left.
+WIDGETS THAT BUILD EXCITEMENT
+• See days left anytime with Home Screen widgets
+• Lock Screen widgets supported
+• Live Activity shows a real-time countdown as the day gets close
+
+MAKE IT YOURS
+• Set your own photo or a template image as the background
+• Choose a style: days, progress bar or circle
+• Show just days, or hours, minutes and seconds
+• Repeat yearly, monthly or weekly — perfect for birthdays and anniversaries
+
+LITTLE THINGS THAT MAKE WAITING FUN
+• Write down what you're excited about in "Looking Forward" notes
+• Reminder notifications the day before, a week before and more
+• Past events are kept as "Memories"
+• Share your countdown as an image on social media
+
+PERFECT FOR
+• Enjoying the run-up to your wedding
+• Counting the days to a trip or honeymoon
+• Fans who can't wait for the next concert
+• Never forgetting birthdays and anniversaries
+• Visualizing exams, graduation or a due date
