@@ -1,5 +1,6 @@
 import Foundation
 import AppIntents
+import UIKit
 
 /// App Groups を使用してメインアプリとウィジェット間でデータを共有するマネージャー
 struct SharedDataManager {
@@ -16,6 +17,39 @@ struct SharedDataManager {
         if let encoded = try? JSONEncoder().encode(events) {
             defaults.set(encoded, forKey: eventsKey)
         }
+    }
+
+    static let pendingStepTogglesKey = "PendingStepToggles"
+
+    /// ウィジェットからステップの完了を切り替える。
+    /// 本体のデータはアプリ側が次回起動時に反映し、ここではウィジェット表示用のデータだけ即時更新する
+    static func toggleStep(_ stepId: UUID) {
+        guard let defaults = sharedDefaults else { return }
+        var pending = defaults.stringArray(forKey: pendingStepTogglesKey) ?? []
+        if let index = pending.firstIndex(of: stepId.uuidString) {
+            pending.remove(at: index)  // 2回押したら打ち消し
+        } else {
+            pending.append(stepId.uuidString)
+        }
+        defaults.set(pending, forKey: pendingStepTogglesKey)
+
+        var events = loadEvents()
+        for eventIndex in events.indices {
+            guard var steps = events[eventIndex].upcomingSteps,
+                  let stepIndex = steps.firstIndex(where: { $0.id == stepId }) else { continue }
+            steps[stepIndex].isCompleted.toggle()
+            events[eventIndex].completedSteps = (events[eventIndex].completedSteps ?? 0) + (steps[stepIndex].isCompleted ? 1 : -1)
+            events[eventIndex].upcomingSteps = steps
+        }
+        saveEvents(events)
+    }
+
+    /// ウィジェット用に書き出されたゴール画像
+    static func loadImage(for id: UUID) -> UIImage? {
+        guard let url = FileManager.default
+            .containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier)?
+            .appendingPathComponent("WidgetImages/\(id.uuidString).jpg") else { return nil }
+        return UIImage(contentsOfFile: url.path)
     }
 
     /// イベントを読み込み
@@ -40,12 +74,37 @@ struct SharedDataManager {
     }
 }
 
+/// ウィジェット用のステップ
+struct WidgetStep: Codable, Identifiable, Equatable {
+    var id: UUID
+    var title: String
+    var date: Date
+    var isCompleted: Bool
+
+    var daysRemaining: Int {
+        let calendar = Calendar.current
+        return calendar.dateComponents([.day], from: calendar.startOfDay(for: Date()), to: calendar.startOfDay(for: date)).day ?? 0
+    }
+}
+
 /// ウィジェット用のイベントモデル（軽量版）
 struct WidgetEvent: Codable, Identifiable, Equatable {
     var id: UUID
     var title: String
     var date: Date
     var color: String
+    // v0.4〜 ステップ情報（古いデータでは nil）
+    var completedSteps: Int?
+    var totalSteps: Int?
+    var upcomingSteps: [WidgetStep]?
+    var hasImage: Bool?
+
+    var hasSteps: Bool { (totalSteps ?? 0) > 0 }
+
+    var stepRatio: Double {
+        guard let total = totalSteps, total > 0 else { return 0 }
+        return Double(completedSteps ?? 0) / Double(total)
+    }
 
     /// 残り日数
     var daysRemaining: Int {

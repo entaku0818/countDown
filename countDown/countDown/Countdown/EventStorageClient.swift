@@ -38,7 +38,20 @@ extension EventStorageClient: DependencyKey {
 
         return EventStorageClient(
             loadEvents: {
-                let events = loadEventsFromDefaults()
+                var events = loadEventsFromDefaults()
+
+                // ウィジェットで完了チェックされたステップを反映
+                let toggled = SharedDataManager.consumePendingStepToggles()
+                if !toggled.isEmpty {
+                    for id in toggled {
+                        if let index = events.firstIndex(where: { $0.id == id }) {
+                            events[index].isCompleted.toggle()
+                        }
+                    }
+                    if let encoded = try? JSONEncoder().encode(events) {
+                        UserDefaults.standard.set(encoded, forKey: saveKey)
+                    }
+                }
                 print("ローカルから\(events.count)件のイベントを読み込みました")
 
                 // ウィジェット用にも同期

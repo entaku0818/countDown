@@ -139,6 +139,9 @@ struct countDownApp: App {
             CountdownView(store: Self.store)
             .environmentObject(adConfig)
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+                // ウィジェットでの完了チェックを取り込むため再読み込み
+                Self.store.send(.onAppear)
+
                 // アプリがアクティブになったときにもトラッキング許可を確認（初回起動以外の場合）
                 if ATTrackingManager.trackingAuthorizationStatus == .notDetermined {
                     delegate.requestTrackingAuthorization()
