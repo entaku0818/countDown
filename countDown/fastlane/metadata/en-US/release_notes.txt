@@ -1,11 +1,5 @@
-Initial Release v0.1.0
-- Countdown timer functionality
-- Multiple event registration and management
-- Notification features
-- iOS 17.0+ support
-- Beautiful UI design
-
-Additional features:
-- Intuitive user experience
-- Customizable event display
-- Minimal ads for better user experience
+Introducing "Journey"!
+• Add steps inside a big goal (like a wedding or trip) — e.g. "Photo shoot", "Send invitations"
+• Steps can have their own steps, too
+• Check off steps and see your progress toward the big day at a glance
+• Goal progress and your next step now appear in the list
