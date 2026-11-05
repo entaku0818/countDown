@@ -224,11 +224,16 @@ struct StepListView: View {
             }
             ForEach(Array(steps)) { step in
                 HStack(spacing: 6) {
-                    Button(intent: ToggleStepIntent(stepId: step.id)) {
-                        Image(systemName: step.isCompleted ? "checkmark.circle.fill" : "circle")
-                            .foregroundColor(step.isCompleted ? colorFromString(event.color) : .secondary)
+                    if SharedDataManager.isPremiumUnlocked {
+                        Button(intent: ToggleStepIntent(stepId: step.id)) {
+                            Image(systemName: step.isCompleted ? "checkmark.circle.fill" : "circle")
+                                .foregroundColor(step.isCompleted ? colorFromString(event.color) : .secondary)
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        Image(systemName: "circle")
+                            .foregroundColor(.secondary)
                     }
-                    .buttonStyle(.plain)
                     Text(step.title)
                         .font(.caption)
                         .strikethrough(step.isCompleted)
@@ -251,7 +256,8 @@ struct GoalHeaderView: View {
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            if event.hasImage == true, let image = SharedDataManager.loadImage(for: event.id) {
+            if event.hasImage == true, SharedDataManager.isPremiumUnlocked,
+               let image = SharedDataManager.loadImage(for: event.id) {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFill()

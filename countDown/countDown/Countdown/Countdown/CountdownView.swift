@@ -70,14 +70,20 @@ struct CountdownView: View {
                     .padding(.top, 8)
                 }
 
-                // バナー広告の表示
-                AdmobBannerView()
-                    .frame(height: 50)
+                // バナー広告の表示（プレミアムでは非表示）
+                if !store.removesAds {
+                    AdmobBannerView()
+                        .frame(height: 50)
+                }
             }
             .navigationTitle("カウントダウン")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    NavigationLink(destination: SettingsView()) {
+                    NavigationLink(destination: SettingsView(
+                        isPremium: store.removesAds,
+                        showsPremium: RevenueCatConfig.isConfigured,
+                        onPremiumTapped: { store.send(.showPaywall(.settings)) }
+                    )) {
                         Image(systemName: "gear")
                     }
                 }
@@ -112,6 +118,14 @@ struct CountdownView: View {
                 print("CountdownView: filteredEvents changed from \(oldValue) to \(newValue)")
             }
             .alert(store: store.scope(state: \.$alert, action: \.alert))
+            .sheet(store: store.scope(state: \.$paywall, action: \.paywall)) { store in
+                NavigationStack {
+                    PaywallView(store: store)
+                }
+            }
+            .task {
+                await store.send(.startPremium).finish()
+            }
         }
     }
 }

@@ -20,6 +20,13 @@ struct SharedDataManager {
     }
 
     static let pendingStepTogglesKey = "PendingStepToggles"
+    static let widgetPremiumKey = "WidgetPremiumUnlocked"
+
+    /// 写真背景・完了チェックを使えるか（アプリが書き込む。未書き込みなら開放）
+    static var isPremiumUnlocked: Bool {
+        guard let defaults = sharedDefaults, defaults.object(forKey: widgetPremiumKey) != nil else { return true }
+        return defaults.bool(forKey: widgetPremiumKey)
+    }
 
     /// ウィジェットからステップの完了を切り替える。
     /// 本体のデータはアプリ側が次回起動時に反映し、ここではウィジェット表示用のデータだけ即時更新する

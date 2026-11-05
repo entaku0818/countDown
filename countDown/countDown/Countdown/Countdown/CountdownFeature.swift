@@ -14,8 +14,15 @@ struct CountdownFeature {
         @Presents var addEvent: AddEventFeature.State?
         @Presents var editEvent: AddEventFeature.State?
         @Presents var alert: AlertState<Action.Alert>?
+        @Presents var paywall: PaywallFeature.State?
+        var isPremium: Bool = false
+        /// 課金が有効化されているか（RevenueCat の APIキー投入済み）
+        var billingEnabled: Bool = RevenueCatConfig.isConfigured
 
-        static let freeVersionEventLimit = 3
+        /// 無料枠の制限を受けないか（課金未設定の間は全員 true）
+        var hasPremium: Bool { !billingEnabled || isPremium }
+        /// 広告を消すか（課金未設定の間は従来どおり広告あり）
+        var removesAds: Bool { billingEnabled && isPremium }
     }
 
     enum Action: BindableAction {
@@ -33,6 +40,10 @@ struct CountdownFeature {
         case editEvent(PresentationAction<AddEventFeature.Action>)
         case updateFilteredEvents
         case alert(PresentationAction<Alert>)
+        case startPremium
+        case premiumChanged(Bool)
+        case showPaywall(PaywallFeature.Reason)
+        case paywall(PresentationAction<PaywallFeature.Action>)
 
         enum Alert: Equatable {
             case eventLimitReached
@@ -43,6 +54,7 @@ struct CountdownFeature {
 
     @Dependency(\.eventStorage) var eventStorage
     @Dependency(\.alarmService) var alarmService
+    @Dependency(\.purchaseClient) var purchaseClient
 
     var body: some ReducerOf<Self> {
         BindingReducer()
@@ -72,17 +84,8 @@ struct CountdownFeature {
                 return .send(.updateFilteredEvents)
 
             case .addButtonTapped:
-                if state.events.goals.count >= State.freeVersionEventLimit {
-                    state.alert = AlertState {
-                        TextState("イベント数の制限に達しました")
-                    } actions: {
-                        ButtonState(role: .cancel) {
-                            TextState("OK")
-                        }
-                    } message: {
-                        TextState("無料版では最大3つのイベントしか登録できません。後日、プレミアム版にアップグレードできるようになります。")
-                    }
-                    return .none
+                if !state.hasPremium && state.events.goals.count >= FreePlanLimit.goals {
+                    return .send(.showPaywall(.goalLimit))
                 }
                 state.addEvent = AddEventFeature.State(event: Event(title: "", date: Date()))
                 return .none
@@ -101,6 +104,14 @@ struct CountdownFeature {
                 }
 
             case let .addStepTapped(parentId):
+                if !state.hasPremium {
+                    if state.events.depth(of: parentId) + 1 > FreePlanLimit.stepDepth {
+                        return .send(.showPaywall(.nestedStep))
+                    }
+                    if state.events.children(of: parentId).count >= FreePlanLimit.stepsPerParent {
+                        return .send(.showPaywall(.stepLimit))
+                    }
+                }
                 let parent = state.events.first { $0.id == parentId }
                 state.addEvent = AddEventFeature.State(
                     event: Event(
@@ -225,6 +236,36 @@ struct CountdownFeature {
             case .addEvent, .editEvent:
                 return .none
 
+            case .startPremium:
+                return .run { send in
+                    purchaseClient.configure()
+                    for await isPremium in purchaseClient.premiumStream() {
+                        await send(.premiumChanged(isPremium))
+                    }
+                }
+
+            case let .premiumChanged(isPremium):
+                state.isPremium = isPremium
+                PremiumStatus.update(isPremium)
+                // ウィジェットの写真・完了チェックの解放状態を反映
+                SharedDataManager.saveEventsForWidget(state.events)
+                return .none
+
+            case let .showPaywall(reason):
+                state.paywall = PaywallFeature.State(reason: reason)
+                return .none
+
+            case .paywall(.presented(.delegate(.premiumActivated))):
+                state.paywall = nil
+                return .send(.premiumChanged(true))
+
+            case .paywall(.presented(.delegate(.close))):
+                state.paywall = nil
+                return .none
+
+            case .paywall:
+                return .none
+
             case .alert(.dismiss):
                 state.alert = nil
                 return .none
@@ -238,6 +279,9 @@ struct CountdownFeature {
         }
         .ifLet(\.$editEvent, action: \.editEvent) {
             AddEventFeature()
+        }
+        .ifLet(\.$paywall, action: \.paywall) {
+            PaywallFeature()
         }
     }
 

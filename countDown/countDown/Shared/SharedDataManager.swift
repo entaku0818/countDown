@@ -12,6 +12,7 @@ struct SharedDataManager {
     }
 
     static let pendingStepTogglesKey = "PendingStepToggles"
+    static let widgetPremiumKey = "WidgetPremiumUnlocked"
 
     /// イベントを保存（メインアプリから呼び出し）
     static func saveEventsForWidget(_ events: [Event]) {
@@ -39,6 +40,9 @@ struct SharedDataManager {
             )
         }
         removeStaleImages(keeping: Set(goals.map(\.id)))
+
+        // 写真背景・完了チェックはプレミアム機能（課金未設定の間は開放）
+        defaults.set(PremiumStatus.isActive, forKey: widgetPremiumKey)
 
         if let encoded = try? JSONEncoder().encode(widgetEvents) {
             defaults.set(encoded, forKey: eventsKey)

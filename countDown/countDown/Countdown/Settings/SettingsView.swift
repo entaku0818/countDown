@@ -5,12 +5,32 @@ import SafariServices
 struct SettingsView: View {
     @Dependency(\.alarmService) var alarmService
 
+    var isPremium: Bool = false
+    /// 課金が有効化されている時だけプレミアム導線を出す
+    var showsPremium: Bool = false
+    var onPremiumTapped: () -> Void = {}
+
     @State private var notificationStatus: NotificationAuthorizationStatus = .notDetermined
     @State private var showTermsWebView = false
     @State private var showPrivacyWebView = false
 
     var body: some View {
         List {
+            if showsPremium {
+                Section {
+                    if isPremium {
+                        Label("プレミアム利用中", systemImage: "checkmark.seal.fill")
+                            .foregroundColor(.pink)
+                    } else {
+                        Button {
+                            onPremiumTapped()
+                        } label: {
+                            Label("プレミアムにアップグレード", systemImage: "sparkles")
+                        }
+                    }
+                }
+            }
+
             Section("通知設定") {
                 HStack {
                     Text("通知")

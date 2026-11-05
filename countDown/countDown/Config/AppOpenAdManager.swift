@@ -63,6 +63,8 @@ class AppOpenAdManager: NSObject {
 
     /// フォアグラウンドに戻った時に広告を表示
     func showAdIfAvailable(from viewController: UIViewController) {
+        // プレミアムユーザーには広告を出さない
+        guard !PremiumStatus.removesAds else { return }
         // 起動回数が少ない場合はスキップ
         guard launchCount >= minimumLaunchCountForAd else {
             print("AppOpenAd: 起動回数が少ないためスキップ (\(launchCount)/\(minimumLaunchCountForAd))")

@@ -36,6 +36,7 @@
 		61992A932DABFD7900FED06D /* FirebaseStorageCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 61992A922DABFD7900FED06D /* FirebaseStorageCombine-Community */; };
 		61992A952DABFD7900FED06D /* FirebaseVertexAI in Frameworks */ = {isa = PBXBuildFile; productRef = 61992A942DABFD7900FED06D /* FirebaseVertexAI */; };
 		61D9D2B12DB4B1920001F08F /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 61D9D2B02DB4B1920001F08F /* GoogleMobileAds */; };
+		A1C0FFEE0000000000000003 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = A1C0FFEE0000000000000002 /* RevenueCat */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -156,6 +157,7 @@
 				61992A8B2DABFD7900FED06D /* FirebaseMessaging in Frameworks */,
 				61992A892DABFD7900FED06D /* FirebaseMLModelDownloader in Frameworks */,
 				61D9D2B12DB4B1920001F08F /* GoogleMobileAds in Frameworks */,
+				A1C0FFEE0000000000000003 /* RevenueCat in Frameworks */,
 				61992A8D2DABFD7900FED06D /* FirebasePerformance in Frameworks */,
 				61992A792DABFD7900FED06D /* FirebaseDatabase in Frameworks */,
 				61992A752DABFD7900FED06D /* FirebaseCore in Frameworks */,
@@ -273,6 +275,7 @@
 				61992A922DABFD7900FED06D /* FirebaseStorageCombine-Community */,
 				61992A942DABFD7900FED06D /* FirebaseVertexAI */,
 				61D9D2B02DB4B1920001F08F /* GoogleMobileAds */,
+				A1C0FFEE0000000000000002 /* RevenueCat */,
 			);
 			productName = countDown;
 			productReference = 6121E27B2DA278FA00EF9800 /* countDown.app */;
@@ -385,6 +388,7 @@
 				6121E3452DA27E3200EF9800 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
 				61992A652DABFD7900FED06D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				61D9D2AF2DB4B1920001F08F /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
+				A1C0FFEE0000000000000001 /* XCRemoteSwiftPackageReference "purchases-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 6121E27C2DA278FA00EF9800 /* Products */;
@@ -885,6 +889,14 @@
 				minimumVersion = 12.3.0;
 			};
 		};
+		A1C0FFEE0000000000000001 /* XCRemoteSwiftPackageReference "purchases-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.77.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1017,6 +1029,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 61D9D2AF2DB4B1920001F08F /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
 			productName = GoogleMobileAds;
+		};
+		A1C0FFEE0000000000000002 /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1C0FFEE0000000000000001 /* XCRemoteSwiftPackageReference "purchases-ios" */;
+			productName = RevenueCat;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
