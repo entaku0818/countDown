@@ -26,6 +26,21 @@ platform :ios do
     )
   end
 
+  # メタデータ（名前・説明文・キーワード等）だけをアップロード。審査提出はしない
+  desc "Upload metadata only (no binary, no screenshots, no submission)"
+  lane :metadata do |options|
+    deliver(
+      app_version: options[:version] || get_version_number(xcodeproj: "countDown.xcodeproj", target: "countDown"),
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      skip_metadata: false,
+      submit_for_review: false,
+      force: true,
+      ignore_language_directory_validation: true,
+      run_precheck_before_submit: false
+    )
+  end
+
   # Xcodeでアップロード済みのビルドを審査提出
   desc "Submit already uploaded build for review (upload binary via Xcode first)"
   lane :submit_build do
