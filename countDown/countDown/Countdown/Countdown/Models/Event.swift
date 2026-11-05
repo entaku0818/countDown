@@ -17,6 +17,10 @@ struct Event: Equatable, Identifiable, Codable {
     var imageName: String?  // テンプレート画像名
     var customImageData: Data?  // カスタム画像データ
     var repeatType: RepeatType
+    /// 親ゴールのID。nil ならトップレベルの「ゴール」、値があればその「ステップ」
+    var parentId: UUID?
+    /// ステップの完了フラグ
+    var isCompleted: Bool
 
     // 通知設定を追加
     var notificationSettings: [NotificationSettings]
@@ -31,6 +35,8 @@ struct Event: Equatable, Identifiable, Codable {
         imageName: String? = nil,
         customImageData: Data? = nil,
         repeatType: RepeatType = .none,
+        parentId: UUID? = nil,
+        isCompleted: Bool = false,
         notificationSettings: [NotificationSettings] = []
     ) {
         self.id = id
@@ -42,6 +48,8 @@ struct Event: Equatable, Identifiable, Codable {
         self.imageName = imageName
         self.customImageData = customImageData
         self.repeatType = repeatType
+        self.parentId = parentId
+        self.isCompleted = isCompleted
 
         // 通知設定が空の場合は、デフォルトの通知設定を作成
         if notificationSettings.isEmpty {
@@ -50,6 +58,9 @@ struct Event: Equatable, Identifiable, Codable {
             self.notificationSettings = notificationSettings
         }
     }
+
+    /// トップレベルのゴールかどうか
+    var isGoal: Bool { parentId == nil }
 
     /// 画像があるかどうか
     var hasImage: Bool {
@@ -189,6 +200,10 @@ struct Event: Equatable, Identifiable, Codable {
 
         // repeatTypeが存在しない古いデータの場合はデフォルト値を使用
         repeatType = try container.decodeIfPresent(RepeatType.self, forKey: .repeatType) ?? .none
+
+        // v0.3以前のデータには階層情報がないので、すべてゴールとして扱う
+        parentId = try container.decodeIfPresent(UUID.self, forKey: .parentId)
+        isCompleted = try container.decodeIfPresent(Bool.self, forKey: .isCompleted) ?? false
 
         // notificationSettingsが存在しない古いデータの場合は空の配列を使用し、後でデフォルト設定を追加
         let decodedSettings = try container.decodeIfPresent([NotificationSettings].self, forKey: .notificationSettings) ?? []

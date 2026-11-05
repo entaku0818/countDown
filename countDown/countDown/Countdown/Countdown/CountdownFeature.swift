@@ -23,8 +23,10 @@ struct CountdownFeature {
         case onAppear
         case eventsLoaded([Event])
         case addButtonTapped
-        case deleteEvent(IndexSet)
+        case deleteEvent(UUID)
         case eventTapped(Event)
+        case addStepTapped(parentId: UUID)
+        case toggleStepCompleted(UUID)
         case scheduleNotification(Event)
         case showAlert(Alert)
         case addEvent(PresentationAction<AddEventFeature.Action>)
@@ -70,7 +72,7 @@ struct CountdownFeature {
                 return .send(.updateFilteredEvents)
 
             case .addButtonTapped:
-                if state.events.count >= State.freeVersionEventLimit {
+                if state.events.goals.count >= State.freeVersionEventLimit {
                     state.alert = AlertState {
                         TextState("イベント数の制限に達しました")
                     } actions: {
@@ -85,15 +87,37 @@ struct CountdownFeature {
                 state.addEvent = AddEventFeature.State(event: Event(title: "", date: Date()))
                 return .none
 
-            case let .deleteEvent(indexSet):
-                let eventsToDelete = indexSet.map { state.events[$0] }
-                state.events.remove(atOffsets: indexSet)
+            case let .deleteEvent(id):
+                // ゴールを消したら配下のステップもすべて消す
+                let idsToDelete = Set([id] + state.events.descendantIds(of: id))
+                state.events.removeAll { idsToDelete.contains($0.id) }
                 return .run { send in
-                    for event in eventsToDelete {
+                    for eventId in idsToDelete {
                         // 通知もキャンセル
-                        _ = await alarmService.cancelEventNotifications(event.id)
-                        await eventStorage.deleteEvent(event.id)
+                        _ = await alarmService.cancelEventNotifications(eventId)
+                        await eventStorage.deleteEvent(eventId)
                     }
+                    await send(.updateFilteredEvents)
+                }
+
+            case let .addStepTapped(parentId):
+                let parent = state.events.first { $0.id == parentId }
+                state.addEvent = AddEventFeature.State(
+                    event: Event(
+                        title: "",
+                        date: Date(),
+                        color: parent?.color ?? "blue",
+                        parentId: parentId
+                    )
+                )
+                return .none
+
+            case let .toggleStepCompleted(id):
+                guard let index = state.events.firstIndex(where: { $0.id == id }) else { return .none }
+                state.events[index].isCompleted.toggle()
+                let event = state.events[index]
+                return .run { send in
+                    await eventStorage.updateEvent(event)
                     await send(.updateFilteredEvents)
                 }
 

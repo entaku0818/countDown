@@ -17,8 +17,8 @@ struct SharedDataManager {
             return
         }
 
-        // Event を WidgetEvent に変換
-        let widgetEvents = events.map { event in
+        // Event を WidgetEvent に変換（ウィジェットにはトップレベルのゴールのみ表示）
+        let widgetEvents = events.filter(\.isGoal).map { event in
             WidgetEvent(
                 id: event.id,
                 title: event.title,

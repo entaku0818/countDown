@@ -6,9 +6,9 @@ struct AddEventView: View {
     
     var body: some View {
         Form {
-            Section(header: Text("イベント情報")) {
+            Section(header: Text(store.event.isGoal ? "イベント情報" : "ステップ情報")) {
                 HStack {
-                    TextField("イベント名", text: $store.event.title)
+                    TextField(store.event.isGoal ? "イベント名" : "ステップ名（例: 前撮り）", text: $store.event.title)
                     
                     Button(action: {
                         store.send(.toggleSuggestions)

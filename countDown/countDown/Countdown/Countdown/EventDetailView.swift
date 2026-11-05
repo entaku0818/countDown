@@ -3,26 +3,36 @@ import Combine
 import ComposableArchitecture
 
 struct EventDetailView: View {
-    let event: Event
-    let onEditTapped: (Event) -> Void
+    @Bindable var store: StoreOf<CountdownFeature>
+    let eventId: UUID
 
     @State private var now = Date()
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
+        if let event = store.events.first(where: { $0.id == eventId }) {
+            content(event)
+        } else {
+            // 削除された場合など
+            ContentUnavailableView("見つかりません", systemImage: "calendar.badge.exclamationmark")
+        }
+    }
+
+    @ViewBuilder
+    private func content(_ event: Event) -> some View {
         List {
             Section {
                 VStack(alignment: .center, spacing: 16) {
                     // 画像表示
-                    eventImageView
+                    eventImageView(event)
 
                     // リアルタイムカウントダウン
                     VStack(spacing: 8) {
-                        Text(formattedCountdown)
+                        Text(formattedCountdown(event))
                             .font(.system(size: 28, weight: .bold, design: .rounded))
                             .foregroundColor(Color(stringValue: event.color))
 
-                        Text(countdownSuffix)
+                        Text(countdownSuffix(event))
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -52,6 +62,8 @@ struct EventDetailView: View {
                 )
             }
             
+            journeySection(event)
+
             Section("日付") {
                 HStack {
                     Text("日付")
@@ -100,12 +112,12 @@ struct EventDetailView: View {
                 )
             }
         }
-        .navigationTitle("イベント詳細")
+        .navigationTitle(event.isGoal ? "ゴール" : "ステップ")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
-                    onEditTapped(event)
+                    store.send(.eventTapped(event))
                 } label: {
                     Image(systemName: "pencil")
                 }
@@ -116,8 +128,90 @@ struct EventDetailView: View {
         }
     }
 
+    /// ゴールまでの道のり（配下のステップ）。ステップの中にさらにステップを作れる
+    @ViewBuilder
+    private func journeySection(_ event: Event) -> some View {
+        let steps = store.events.children(of: event.id)
+        Section {
+            if let progress = store.events.stepProgress(of: event.id) {
+                VStack(alignment: .leading, spacing: 6) {
+                    ProgressView(value: progress.ratio)
+                        .tint(Color(stringValue: event.color))
+                    Text(progress.completed == progress.total
+                         ? "すべてのステップを達成！あとは当日を待つだけ"
+                         : "\(progress.total)ステップ中 \(progress.completed) 達成")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.vertical, 4)
+            }
+
+            ForEach(steps) { step in
+                stepRow(step)
+            }
+
+            Button {
+                store.send(.addStepTapped(parentId: event.id))
+            } label: {
+                Label("ステップを追加", systemImage: "plus.circle")
+            }
+        } header: {
+            Text("\(event.title)までの道のり")
+        } footer: {
+            if steps.isEmpty {
+                Text("「前撮り」「招待状発送」のように、当日までの小さなゴールを登録できます")
+            }
+        }
+    }
+
+    private func stepRow(_ step: Event) -> some View {
+        HStack(spacing: 12) {
+            Button {
+                store.send(.toggleStepCompleted(step.id))
+            } label: {
+                Image(systemName: step.isCompleted ? "checkmark.circle.fill" : "circle")
+                    .font(.title3)
+                    .foregroundColor(step.isCompleted ? Color(stringValue: step.color) : .secondary)
+            }
+            .buttonStyle(.plain)
+
+            NavigationLink {
+                EventDetailView(store: store, eventId: step.id)
+            } label: {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(step.title)
+                        .strikethrough(step.isCompleted)
+                        .foregroundColor(step.isCompleted ? .secondary : .primary)
+                    HStack(spacing: 6) {
+                        Text(step.displayDate.formatted(date: .abbreviated, time: .omitted))
+                        Text(stepCountdownText(step))
+                        if let sub = store.events.stepProgress(of: step.id) {
+                            Label("\(sub.completed)/\(sub.total)", systemImage: "list.bullet")
+                        }
+                    }
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                }
+            }
+        }
+        .swipeActions {
+            Button(role: .destructive) {
+                store.send(.deleteEvent(step.id))
+            } label: {
+                Label("削除", systemImage: "trash")
+            }
+        }
+    }
+
+    private func stepCountdownText(_ step: Event) -> String {
+        if step.isCompleted { return "達成" }
+        if step.isToday { return "今日" }
+        let days = step.daysRemaining
+        return days >= 0 ? "あと\(days)日" : "\(-days)日経過"
+    }
+
     /// リアルタイムカウントダウンテキスト
-    private var formattedCountdown: String {
+    private func formattedCountdown(_ event: Event) -> String {
         let calendar = Calendar.current
         let targetDate = event.displayDate
 
@@ -141,7 +235,7 @@ struct EventDetailView: View {
         return "\(days)日 \(hours)時間 \(minutes)分 \(seconds)秒"
     }
 
-    private var countdownSuffix: String {
+    private func countdownSuffix(_ event: Event) -> String {
         let targetDate = event.displayDate
         let days = Calendar.current.dateComponents([.day], from: now, to: targetDate).day ?? 0
         if Calendar.current.isDateInToday(targetDate) {
@@ -156,7 +250,7 @@ struct EventDetailView: View {
     }
 
     @ViewBuilder
-    private var eventImageView: some View {
+    private func eventImageView(_ event: Event) -> some View {
         if let imageData = event.customImageData,
            let uiImage = UIImage(data: imageData) {
             Image(uiImage: uiImage)
@@ -173,15 +267,15 @@ struct EventDetailView: View {
 }
 
 #Preview {
-    NavigationStack {
-        EventDetailView(
-            event: Event(
-                title: "サンプルイベント",
-                date: Date(),
-                color: "blue", note: "これはサンプルのイベントです。",
-                displayFormat: DisplayFormat(style: .days)
-            ),
-            onEditTapped: { _ in }
-        )
+    let goal = Event(title: "結婚式", date: Date().addingTimeInterval(86400 * 120), color: "pink")
+    let store = Store(initialState: CountdownFeature.State(events: [
+        goal,
+        Event(title: "前撮り", date: Date().addingTimeInterval(86400 * 30), parentId: goal.id, isCompleted: true),
+        Event(title: "招待状発送", date: Date().addingTimeInterval(86400 * 60), parentId: goal.id)
+    ])) {
+        CountdownFeature()
     }
-} 
+    return NavigationStack {
+        EventDetailView(store: store, eventId: goal.id)
+    }
+}

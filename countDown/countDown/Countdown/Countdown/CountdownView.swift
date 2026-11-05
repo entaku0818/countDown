@@ -7,14 +7,9 @@ struct CountdownView: View {
     @ViewBuilder
     private func eventRow(_ event: Event) -> some View {
         NavigationLink {
-            EventDetailView(
-                event: event,
-                onEditTapped: { event in
-                    store.send(.eventTapped(event))
-                }
-            )
+            EventDetailView(store: store, eventId: event.id)
         } label: {
-            EventRow(event: event)
+            EventRow(event: event, progress: store.events.stepProgress(of: event.id))
         }
         .buttonStyle(PlainButtonStyle())
         .contextMenu {
@@ -25,9 +20,7 @@ struct CountdownView: View {
             }
 
             Button(role: .destructive) {
-                if let index = store.events.firstIndex(where: { $0.id == event.id }) {
-                    store.send(.deleteEvent(IndexSet(integer: index)))
-                }
+                store.send(.deleteEvent(event.id))
             } label: {
                 Label("削除", systemImage: "trash")
             }
@@ -35,11 +28,11 @@ struct CountdownView: View {
     }
 
     private var upcomingEvents: [Event] {
-        store.filteredEvents.filter { !$0.isPast || $0.repeatType != .none }
+        store.filteredEvents.goals.filter { !$0.isPast || $0.repeatType != .none }
     }
 
     private var memoryEvents: [Event] {
-        store.filteredEvents.filter { $0.isPast && $0.repeatType == .none }
+        store.filteredEvents.goals.filter { $0.isPast && $0.repeatType == .none }
     }
 
     var body: some View {

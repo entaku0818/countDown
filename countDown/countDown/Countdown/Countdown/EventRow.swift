@@ -3,6 +3,7 @@ import Combine
 
 struct EventRow: View {
     var event: Event
+    var progress: StepProgress?
     @State private var now = Date()
 
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -39,6 +40,9 @@ struct EventRow: View {
                     Text(event.displayDate.formatted(date: .abbreviated, time: .omitted))
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.8))
+                    if let progress {
+                        progressView(progress)
+                    }
                 }
 
                 Spacer()
@@ -69,6 +73,23 @@ struct EventRow: View {
         .onReceive(timer) { _ in
             now = Date()
         }
+    }
+
+    /// ゴール配下のステップ進捗（例: 道のり 2/5 ・次: 前撮り）
+    private func progressView(_ progress: StepProgress) -> some View {
+        HStack(spacing: 6) {
+            ProgressView(value: progress.ratio)
+                .tint(.white)
+                .frame(width: 48)
+            Text("\(progress.completed)/\(progress.total)")
+                .font(.caption2).bold()
+            if let next = progress.nextStep {
+                Text("次: \(next.title)")
+                    .font(.caption2)
+                    .lineLimit(1)
+            }
+        }
+        .foregroundColor(.white.opacity(0.9))
     }
 
     @ViewBuilder
